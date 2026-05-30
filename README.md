@@ -4,6 +4,8 @@ A self-hosted, **free** alternative to paid accountability apps (Overlord, BodyB
 
 **Relentless, but fair.** He badgers you on a lazy day — but he has rest days, a no-guilt sick/exam override, and the moment you say you're ill, injured, or buried in revision he drops the act and tells you to rest. No money taken, no devices bricked, no body-shaming. Ever.
 
+**He's also your coach.** Sarge knows your full 8-week programme and your profile, so you can talk to him about anything — today's session in detail, form tips, exercise swaps, how to progress, or how your streak's going — and log workouts just by messaging him.
+
 > Built for Discord. Runs in Docker on your own hardware. Costs ~£0.
 
 ---
@@ -34,8 +36,14 @@ You reply REST / SICK / EXAM / SNOOZE
 | `EXAM [yyyy-mm-dd]` | Exam-crunch mode — pause until a date (default 1 week) |
 | `SNOOZE [hours]` | Back off for a few hours (default 2) |
 | `STATUS` | Show streak, today's status, any active pause |
+| `LOG [what you did]` | Record a workout (e.g. `LOG 4x12 press-ups, 60s plank`) |
+| *(just chat)* | Ask about your session, form, progress — Sarge answers as your coach |
 
-If you just *type* that you're ill/injured/exhausted/overwhelmed, Sarge auto-pauses for the day and replies kindly — even without a command.
+If you just *type* that you're ill/injured/exhausted/overwhelmed, Sarge auto-pauses for the day and replies kindly — even without a command. And if you state a workout in passing ("did 4x12 press-ups"), he logs it automatically; ask a question ("should I do 4x12?") and he just answers.
+
+### Coaching & chat
+
+Send anything — "what's today?", "how do I do a pike press-up?", "can I swap lunges?", "how's my week looking?". Sarge replies in character using your live programme, stats, streak and recent logs as context. Training is his specialty; off-topic chat gets a short answer and a nudge back to work. Requires an `OPENROUTER_API_KEY` (without it, commands still work but free chat is disabled).
 
 ## Quick start
 
@@ -59,13 +67,19 @@ Next.js 15 (dashboard) · discord.js 14 (bot) · Postgres + Drizzle ORM · OpenR
 ```
 src/
   db/        Drizzle schema + client
-  core/      pure logic — schedule, escalation, overrides, proof, streak, concern (all unit-tested)
-  nag/       drill-sergeant persona + OpenRouter generation + safe deterministic replies
+  core/      pure logic — schedule, escalation, overrides, proof, streak, concern, workoutlog (all unit-tested)
+  nag/       drill-sergeant persona, nag generation, and the coach (chat with plan+profile context)
+  data/      the 8-week plan (committed) + profile loader (reads your private profile)
 worker/      the bot: config, repo, discord client/handlers, cron entrypoint
 app/         Next.js dashboard
+data/        profile.example.json (committed) + profile.local.json (gitignored, your stats)
 test/        unit tests (run with `npm test`)
 drizzle/     generated SQL migrations
 ```
+
+### Your profile (private)
+
+Sarge's coaching uses `data/profile.local.json` — your stats, goals, baselines and constraints. **It's gitignored and never pushed**, since this repo is public. A blank `data/profile.example.json` is committed as the template; edit your local copy anytime to update what Sarge knows.
 
 ## Dev commands
 

@@ -1,5 +1,3 @@
-import type { Weekday3 } from './time';
-
 /** Session names mirror the 8-week plan. */
 export const SESSIONS: Record<string, string> = {
   tue: 'Push + Legs + Abs',
@@ -8,11 +6,11 @@ export const SESSIONS: Record<string, string> = {
   sat: 'Push + Legs + Abs'
 };
 
-export function isTrainingDay(weekday: Weekday3, trainingDays: string[]): boolean {
+export function isTrainingDay(weekday: string, trainingDays: string[]): boolean {
   return trainingDays.includes(weekday);
 }
 
-export function sessionFor(weekday: Weekday3, trainingDays: string[]): string | null {
+export function sessionFor(weekday: string, trainingDays: string[]): string | null {
   if (!trainingDays.includes(weekday)) return null;
   return SESSIONS[weekday] ?? 'Workout';
 }

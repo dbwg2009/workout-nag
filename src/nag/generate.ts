@@ -90,6 +90,7 @@ export function concernReply(): string {
 export function helpMessage(personaName: string): string {
   return [
     `I'm ${personaName}. I nag you on training days until you send proof (a photo or fitness screenshot).`,
-    'Commands: REST (skip today) · SICK [days] · EXAM [yyyy-mm-dd] · SNOOZE [hours] · STATUS.'
+    'You can also just talk to me — ask about today\'s session, form, swaps, progression, or how your streak\'s going.',
+    'Commands: LOG [what you did] · REST · SICK [days] · EXAM [yyyy-mm-dd] · SNOOZE [hours] · STATUS.'
   ].join('\n');
 }

@@ -16,6 +16,7 @@ export type ParsedCommand =
   | { type: 'exam'; until: string | null }
   | { type: 'snooze'; hours: number }
   | { type: 'status' }
+  | { type: 'log'; text: string }
   | null;
 
 /** Parse a leading keyword command from a user message. */
@@ -26,6 +27,7 @@ export function parseCommand(raw: string): ParsedCommand {
 
   if (first === 'rest') return { type: 'rest' };
   if (first === 'status') return { type: 'status' };
+  if (first === 'log') return { type: 'log', text: raw.replace(/^\s*log\s+/i, '').trim() };
   if (first === 'sick' || first === 'ill') {
     const m = text.match(/(\d+)/);
     return { type: 'sick', days: m ? Math.max(1, Math.min(14, parseInt(m[1], 10))) : 2 };
@@ -41,7 +43,7 @@ export function parseCommand(raw: string): ParsedCommand {
   return null;
 }
 
-export type WindowCommand = Exclude<ParsedCommand, null | { type: 'status' }>;
+export type WindowCommand = Exclude<ParsedCommand, null | { type: 'status' } | { type: 'log'; text: string }>;
 
 /** Translate a command into a concrete [startsAt, endsAt] window in the given tz. */
 export function overrideWindow(

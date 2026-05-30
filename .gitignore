@@ -9,3 +9,6 @@ next-env.d.ts
 .DS_Store
 npm-debug.log*
 coverage/
+
+# private profile / local data
+data/profile.local.json

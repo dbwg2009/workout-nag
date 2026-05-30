@@ -1,7 +1,7 @@
 import { and, eq, lt, desc } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import { getDb } from '../src/db/client';
-import { days, overrides, nudges, proofs, settings, type Day } from '../src/db/schema';
+import { days, overrides, nudges, proofs, settings, workouts, type Day } from '../src/db/schema';
 
 const db = getDb();
 
@@ -122,4 +122,17 @@ export async function finalizePastDays(todayStr: string, tz: string): Promise<vo
       .set({ status: covered ? 'overridden' : 'missed' })
       .where(eq(days.id, d.id));
   }
+}
+
+export async function addWorkout(
+  dayId: number | null,
+  date: string,
+  rawText: string,
+  parsed: unknown
+): Promise<void> {
+  await db.insert(workouts).values({ dayId, date, rawText, parsed: parsed as object });
+}
+
+export async function getRecentWorkouts(limit = 15) {
+  return db.select().from(workouts).orderBy(desc(workouts.date)).limit(limit);
 }

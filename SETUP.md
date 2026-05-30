@@ -48,6 +48,20 @@ Dashboard: **http://localhost:3000**
 - Need a break? `REST`, `SICK 3`, `EXAM 2026-06-15`, or `SNOOZE 2`.
 - `STATUS` anytime to see your streak.
 
+## Your profile (what Sarge knows about you)
+
+Your training profile lives in `data/profile.local.json` (gitignored — never pushed to the public repo). It's pre-filled with your stats, goals and constraints. Edit it anytime to update what Sarge uses when coaching you — e.g. new body-comp numbers or a new pull-up max. The committed `data/profile.example.json` is just a blank template.
+
+## Talking to Sarge
+
+Beyond proof + commands, just message him:
+- "what's today's session?" / "what's the Friday workout?"
+- "how do I do a hollow body hold?" / "can I swap Bulgarian split squats?"
+- "how's my streak?" / "am I progressing?"
+- `LOG 4x12 press-ups, 8 pull-ups, 60s plank` to record a session (or just say "did 4x12 press-ups").
+
+Chat needs `OPENROUTER_API_KEY`; commands and logging work without it.
+
 ## Tweaks (in `.env`)
 
 - `TRAINING_DAYS=tue,thu,fri,sat` — your training days (from the 8-week plan).

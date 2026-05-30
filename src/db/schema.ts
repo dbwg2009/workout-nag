@@ -79,6 +79,16 @@ export const proofs = pgTable(
   (t) => ({ hashUnique: uniqueIndex('proofs_hash_unique').on(t.hash) })
 );
 
+/** Workout log entries captured from chat ("LOG 4x12 press-ups, felt strong"). */
+export const workouts = pgTable('workouts', {
+  id: serial('id').primaryKey(),
+  dayId: integer('day_id').references(() => days.id),
+  date: date('date').notNull(),
+  rawText: text('raw_text').notNull(),
+  parsed: jsonb('parsed').notNull().default([]),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+});
+
 /** Single-row settings table (id is always 1). */
 export const settings = pgTable('settings', {
   id: integer('id').primaryKey().default(1),
@@ -96,3 +106,5 @@ export type NewDay = typeof days.$inferInsert;
 export type Override = typeof overrides.$inferSelect;
 export type Settings = typeof settings.$inferSelect;
 export type Proof = typeof proofs.$inferSelect;
+export type Workout = typeof workouts.$inferSelect;
+export type NewWorkout = typeof workouts.$inferInsert;

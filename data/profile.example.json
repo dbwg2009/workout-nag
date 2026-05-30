@@ -1,0 +1,16 @@
+{
+  "name": "Your name",
+  "about": "One-line context, e.g. student, sport background.",
+  "heightCm": "",
+  "weightKg": 0,
+  "bodyFatPct": 0,
+  "muscleMassKg": 0,
+  "bmi": 0,
+  "build": "",
+  "goals": ["e.g. build muscle", "e.g. chest/arms/abs definition"],
+  "baselines": { "pull-ups": "?", "press-ups": "?" },
+  "equipment": ["e.g. pull-up bar", "e.g. garden space"],
+  "schedule": "e.g. trains Tue/Thu/Fri/Sat",
+  "constraints": ["e.g. exam season", "e.g. limited sleep"],
+  "notes": ["anything the coach should know"]
+}
