@@ -1,0 +1,45 @@
+:root {
+  --bg: #080808;
+  --surface: #111;
+  --surface2: #181818;
+  --border: #2a2a2a;
+  --accent: #e85a2a;
+  --green: #4caf7d;
+  --red: #e0533d;
+  --text: #e8e4df;
+  --text2: #aaa;
+  --text3: #666;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  padding: 2rem 1.2rem 4rem;
+}
+.wrap { max-width: 760px; margin: 0 auto; }
+.eyebrow { font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 2.4rem; letter-spacing: -0.02em; margin: 0.2rem 0 0.4rem; }
+.muted { color: var(--text2); font-size: 0.9rem; }
+.grid { display: grid; gap: 1px; background: var(--border); border: 1px solid var(--border); margin: 1.5rem 0; }
+.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.stat { background: var(--surface); padding: 1.2rem 1rem; text-align: center; }
+.stat .n { font-size: 2.4rem; font-weight: 700; line-height: 1; color: var(--accent); }
+.stat .n.green { color: var(--green); }
+.stat .n.red { color: var(--red); }
+.stat .l { font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text3); margin-top: 0.3rem; }
+h2 { font-size: 1.1rem; margin: 1.6rem 0 0.6rem; letter-spacing: 0.02em; }
+.card { background: var(--surface); border: 1px solid var(--border); padding: 1rem 1.1rem; margin-bottom: 0.6rem; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.row:last-child { border-bottom: none; }
+.pill { font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.16rem 0.5rem; border: 1px solid var(--border); border-radius: 2px; color: var(--text2); }
+.pill.proven { color: var(--green); border-color: var(--green); }
+.pill.missed { color: var(--red); border-color: var(--red); }
+.pill.pending { color: var(--accent); border-color: var(--accent); }
+.pill.rest, .pill.overridden { color: var(--text3); }
+.nudge { font-size: 0.82rem; color: var(--text2); padding: 0.45rem 0; border-bottom: 1px solid var(--border); }
+.nudge:last-child { border-bottom: none; }
+.nudge .when { color: var(--text3); font-size: 0.7rem; }
+.warn { background: var(--surface2); border: 1px solid var(--accent); padding: 1rem 1.1rem; color: var(--text2); font-size: 0.88rem; }
+.date { color: var(--text3); font-variant-numeric: tabular-nums; }
