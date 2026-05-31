@@ -39,6 +39,13 @@ function formatPlanLog(l: CoachLiveData['planLogs'][number]): string {
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
+// Tried in order after the configured model when the free pool is throttled.
+const FREE_FALLBACK_MODELS = [
+  'meta-llama/llama-3.1-8b-instruct:free',
+  'google/gemma-2-9b-it:free',
+  'mistralai/mistral-7b-instruct:free'
+];
+
 function sessionBlock(weekday: string, week: number | null): string {
   const s = detailedSession(weekday, week);
   if (!s) return 'Today is a REST day — no session scheduled.';
@@ -116,34 +123,52 @@ export async function generateChatReply(opts: {
     { role: 'user', content: userMessage }
   ];
 
-  try {
-    const res = await fetch(OPENROUTER_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'X-Title': 'workout-nag'
-      },
-      body: JSON.stringify({ model, max_tokens: 350, temperature: 0.8, messages })
-    });
-    if (!res.ok) {
+  // The configured model first, then other free models. The free pool gets
+  // throttled upstream per-provider, so falling back keeps chat alive at £0.
+  const tried = new Set<string>();
+  const chain = [model, ...FREE_FALLBACK_MODELS].filter((m) => {
+    if (!m || tried.has(m)) return false;
+    tried.add(m);
+    return true;
+  });
+
+  let sawRateLimit = false;
+  for (const m of chain) {
+    try {
+      const res = await fetch(OPENROUTER_URL, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://github.com/dbwg2009/workout-nag',
+          'X-Title': 'workout-nag'
+        },
+        body: JSON.stringify({ model: m, max_tokens: 350, temperature: 0.8, messages })
+      });
+
+      if (res.ok) {
+        const data: any = await res.json();
+        const text = (data?.choices?.[0]?.message?.content ?? '').trim();
+        if (text) return text;
+        console.error('[coach] OpenRouter OK but empty from', m, JSON.stringify(data).slice(0, 300));
+        continue; // try next model
+      }
+
       const body = await res.text().catch(() => '');
-      console.error(`[coach] OpenRouter ${res.status}: ${body.slice(0, 500)}`);
+      console.error(`[coach] OpenRouter ${res.status} from ${m}: ${body.slice(0, 300)}`);
+      // Auth/payment problems won't be fixed by another model — bail with advice.
       if (res.status === 401)
         return "My API key's being rejected (401). Double-check OPENROUTER_API_KEY in .env, then restart me.";
       if (res.status === 402)
-        return 'OpenRouter says payment required (402) — that model needs credits. Add a little balance or switch OPENROUTER_MODEL.';
-      if (res.status === 429)
-        return "I'm rate-limited on the free model right now (429). Give it a minute, switch OPENROUTER_MODEL, or add a few credits to OpenRouter.";
-      return `Couldn't reach my brain (HTTP ${res.status}). Check the worker logs for details.`;
+        return 'OpenRouter says payment required (402) — switch OPENROUTER_MODEL or add a little balance.';
+      if (res.status === 429) sawRateLimit = true;
+      // 429 and other errors: fall through to the next model
+    } catch (err) {
+      console.error('[coach] OpenRouter fetch threw for', m, err);
     }
-    const data: any = await res.json();
-    const text: string | undefined = data?.choices?.[0]?.message?.content;
-    if (!text) console.error('[coach] OpenRouter OK but empty content:', JSON.stringify(data).slice(0, 500));
-    const clean = (text ?? '').trim();
-    return clean || "Didn't catch that — say again?";
-  } catch (err) {
-    console.error('[coach] OpenRouter fetch threw:', err);
-    return "My brain's offline right now — try again shortly. (Commands still work.)";
   }
+
+  if (sawRateLimit)
+    return 'All the free models are busy right now — try me again in a minute. (For zero rate-limits, add a few OpenRouter credits and use a paid model.)';
+  return "Couldn't reach my brain right now — try again shortly. (Commands still work.)";
 }
