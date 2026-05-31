@@ -51,13 +51,18 @@ export async function generateNag(ctx: NagContext): Promise<string> {
         ]
       })
     });
-    if (!res.ok) return staticNag(ctx);
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      console.error(`[nag] OpenRouter ${res.status}: ${body.slice(0, 300)} — using static line`);
+      return staticNag(ctx);
+    }
     const data: any = await res.json();
     const text: string | undefined = data?.choices?.[0]?.message?.content;
     const clean = (text ?? '').trim();
     if (!clean || clean.length > 400) return staticNag(ctx);
     return clean;
-  } catch {
+  } catch (err) {
+    console.error('[nag] OpenRouter fetch threw — using static line:', err);
     return staticNag(ctx);
   }
 }

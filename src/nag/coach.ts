@@ -126,12 +126,24 @@ export async function generateChatReply(opts: {
       },
       body: JSON.stringify({ model, max_tokens: 350, temperature: 0.8, messages })
     });
-    if (!res.ok) return "Couldn't reach my brain just now — try again in a sec.";
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      console.error(`[coach] OpenRouter ${res.status}: ${body.slice(0, 500)}`);
+      if (res.status === 401)
+        return "My API key's being rejected (401). Double-check OPENROUTER_API_KEY in .env, then restart me.";
+      if (res.status === 402)
+        return 'OpenRouter says payment required (402) — that model needs credits. Add a little balance or switch OPENROUTER_MODEL.';
+      if (res.status === 429)
+        return "I'm rate-limited on the free model right now (429). Give it a minute, switch OPENROUTER_MODEL, or add a few credits to OpenRouter.";
+      return `Couldn't reach my brain (HTTP ${res.status}). Check the worker logs for details.`;
+    }
     const data: any = await res.json();
     const text: string | undefined = data?.choices?.[0]?.message?.content;
+    if (!text) console.error('[coach] OpenRouter OK but empty content:', JSON.stringify(data).slice(0, 500));
     const clean = (text ?? '').trim();
     return clean || "Didn't catch that — say again?";
-  } catch {
+  } catch (err) {
+    console.error('[coach] OpenRouter fetch threw:', err);
     return "My brain's offline right now — try again shortly. (Commands still work.)";
   }
 }
