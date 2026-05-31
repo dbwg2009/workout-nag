@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dan's 8-Week Build</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080808;
+    --surface: #111111;
+    --surface2: #181818;
+    --surface3: #202020;
+    --border: #2a2a2a;
+    --border2: #333;
+    --accent: #e85a2a;
+    --accent2: #ff7a4a;
+    --green: #4caf7d;
+    --blue: #7b9ee8;
+    --text: #e8e4df;
+    --text2: #aaa;
+    --text3: #666;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(8,8,8,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  nav::-webkit-scrollbar { display: none; }
+  .nav-brand {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    color: var(--accent);
+    white-space: nowrap;
+    padding: 1rem 1.5rem 1rem 0;
+    border-right: 1px solid var(--border);
+    margin-right: 0.5rem;
+  }
+  .nav-btn {
+    background: none;
+    border: none;
+    color: var(--text2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 1rem 0.9rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.2s;
+    border-bottom: 2px solid transparent;
+  }
+  .nav-btn:hover, .nav-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+
+  .page { display: none; padding: 1.5rem; max-width: 720px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  .label {
+    font-size: 0.65rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.8rem, 10vw, 4.5rem);
+    line-height: 0.95;
+    color: var(--text);
+  }
+  h1 span { color: var(--accent); }
+  h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  h2::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    color: var(--accent);
+    margin: 1rem 0 0.5rem;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 1.2rem;
+    margin-bottom: 1rem;
+  }
+  .card-accent { border-left: 3px solid var(--accent); }
+  .card-green { border-left: 3px solid var(--green); }
+  .card-blue { border-left: 3px solid var(--blue); }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin: 1.5rem 0;
+  }
+  .stat { background: var(--surface); padding: 1.1rem 0.8rem; text-align: center; }
+  .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--accent); line-height: 1; }
+  .stat-lbl { font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text3); margin-top: 0.2rem; }
+
+  .today-banner {
+    background: var(--surface2);
+    border: 1px solid var(--accent);
+    padding: 1.2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .today-banner::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), transparent); }
+  .today-tag { font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.3rem; }
+  .today-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; color: var(--text); margin-bottom: 0.3rem; }
+  .today-sub { font-size: 0.82rem; color: var(--text2); }
+
+  .week-strip { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; margin-bottom: 1.5rem; }
+  .week-pip { background: var(--surface2); border: 1px solid var(--border); padding: 0.5rem 0.2rem; text-align: center; font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); cursor: pointer; transition: all 0.2s; }
+  .week-pip:hover { border-color: var(--border2); color: var(--text2); }
+  .week-pip.current { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
+  .week-pip.done { background: var(--surface3); border-color: var(--green); color: var(--green); }
+  .week-num-lbl { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; display: block; }
+
+  .session-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 1.5rem; }
+  .session-card { background: var(--surface); padding: 0.9rem 0.7rem; cursor: pointer; transition: background 0.15s; border-bottom: 2px solid transparent; }
+  .session-card:hover { background: var(--surface2); }
+  .session-card.active-session { background: var(--surface2); border-bottom-color: var(--accent); }
+  .session-day { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; color: var(--accent); margin-bottom: 0.2rem; }
+  .session-focus { font-size: 0.68rem; color: var(--text2); }
+
+  .yt-link { font-size: 0.68rem; color: var(--text3); text-decoration: none; border: 1px solid var(--border); padding: 0.2rem 0.5rem; border-radius: 2px; transition: all 0.15s; white-space: nowrap; }
+  .yt-link:hover { color: var(--accent); border-color: var(--accent); }
+
+  .tick-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.4rem; border-bottom: 1px solid var(--border); transition: opacity 0.2s; }
+  .tick-row:last-child { border-bottom: none; }
+  .tick-row.ticked { opacity: 0.45; }
+  .tick-row.ticked .tick-name { text-decoration: line-through; }
+  .tick-box { width: 18px; height: 18px; border: 1.5px solid var(--border2); background: var(--surface2); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .tick-box:hover { border-color: var(--accent); }
+  .tick-box.checked { background: var(--accent); border-color: var(--accent); }
+  .tick-box.checked::after { content: '✓'; font-size: 0.7rem; color: #fff; font-weight: bold; }
+  .tick-name { font-size: 0.82rem; color: var(--text); flex: 1; }
+  .tick-sets { font-size: 0.76rem; color: var(--accent); font-weight: 500; white-space: nowrap; }
+  .tick-yt { font-size: 0.66rem; color: var(--text3); text-decoration: none; border: 1px solid var(--border); padding: 0.15rem 0.4rem; transition: all 0.15s; white-space: nowrap; }
+  .tick-yt:hover { color: var(--accent); border-color: var(--accent); }
+
+  .session-progress { margin: 0.75rem 0 1rem; }
+  .progress-track { height: 3px; background: var(--surface3); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s ease; width: 0%; }
+  .progress-label { font-size: 0.7rem; color: var(--text3); margin-top: 0.3rem; }
+
+  /* TIMER */
+  .timer-box { display: flex; align-items: center; gap: 0.5rem; }
+  .timer-btn { background: var(--surface3); border: 1px solid var(--border2); color: var(--text2); font-family: 'Bebas Neue', sans-serif; font-size: 0.8rem; padding: 0.15rem 0.5rem; cursor: pointer; transition: all 0.15s; border-radius: 2px; }
+  .timer-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .timer-display { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; color: var(--accent); min-width: 42px; text-align: center; }
+
+  .log-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 1rem; }
+  .log-cell { background: var(--surface); padding: 0.8rem; }
+  .log-cell label { display: block; font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 0.4rem; }
+  .log-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.85rem; padding: 0.4rem 0.6rem; outline: none; transition: border-color 0.15s; }
+  .log-input:focus { border-color: var(--accent); }
+
+  .btn { background: var(--accent); color: #fff; border: none; font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 0.08em; padding: 0.7rem 1.5rem; cursor: pointer; transition: background 0.15s; display: inline-block; }
+  .btn:hover { background: var(--accent2); }
+  .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); font-family: 'Bebas Neue', sans-serif; font-size: 0.9rem; letter-spacing: 0.08em; padding: 0.6rem 1.2rem; cursor: pointer; transition: all 0.15s; }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  .log-entry { background: var(--surface); border: 1px solid var(--border); padding: 0.9rem 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; }
+  .log-entry-date { color: var(--text3); font-size: 0.72rem; }
+  .log-entry-val { color: var(--accent); font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; }
+
+  .micro-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); font-size: 0.84rem; }
+  .micro-item:last-child { border-bottom: none; }
+  .micro-time { color: var(--text3); font-size: 0.72rem; min-width: 50px; text-align: right; }
+
+  .nut-row { display: flex; gap: 1rem; align-items: flex-start; padding: 0.85rem 1rem; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 0.83rem; }
+  .nut-row:last-child { border-bottom: none; }
+  .nut-meal { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; color: var(--accent); min-width: 80px; }
+
+  .phase-tabs { display: flex; gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 1.5rem; }
+  .phase-tab { flex: 1; background: var(--surface); border: none; color: var(--text3); font-family: 'DM Sans', sans-serif; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.7rem 0.4rem; cursor: pointer; transition: all 0.15s; text-align: center; border-bottom: 2px solid transparent; }
+  .phase-tab:hover { color: var(--text2); background: var(--surface2); }
+  .phase-tab.active { color: var(--text); background: var(--surface2); border-bottom-color: var(--accent); }
+
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 0.75rem; }
+  .cal-header { text-align: center; font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); padding: 0.4rem 0; }
+  .cal-day { background: var(--surface); border: 1px solid var(--border); padding: 0.5rem 0.3rem; text-align: center; font-size: 0.75rem; min-height: 48px; position: relative; }
+  .cal-day.empty { background: transparent; border-color: transparent; }
+  .cal-day.training { border-color: var(--accent); }
+  .cal-day.today-cal { background: var(--surface3); border-color: var(--text2); }
+  .cal-day .day-num { font-size: 0.78rem; color: var(--text2); }
+  .cal-day .day-tag { font-size: 0.58rem; color: var(--accent); margin-top: 0.1rem; display: block; }
+  .cal-day .day-micro { font-size: 0.55rem; color: var(--green); display: block; }
+  .cal-legend { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; font-size: 0.7rem; color: var(--text2); }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+  .legend-swatch { width: 14px; height: 14px; border: 1px solid var(--border); display: inline-block; }
+
+  .chart-wrap { background: var(--surface); border: 1px solid var(--border); padding: 1rem; margin-bottom: 1rem; }
+  .chart-bars { display: flex; align-items: flex-end; gap: 4px; height: 80px; margin-top: 0.5rem; }
+  .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .chart-bar { width: 100%; background: var(--accent); border-radius: 1px 1px 0 0; min-height: 2px; transition: height 0.3s; opacity: 0.85; }
+  .chart-bar-lbl { font-size: 0.55rem; color: var(--text3); }
+  .chart-val { font-size: 0.6rem; color: var(--accent); }
+
+  .next-phase { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 1rem 1.2rem; margin-bottom: 0.75rem; }
+  .next-phase-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--accent); margin-bottom: 0.4rem; }
+  .next-phase p { font-size: 0.83rem; color: var(--text2); }
+
+  .muted { color: var(--text2); }
+  .small { font-size: 0.78rem; color: var(--text3); }
+  .mt { margin-top: 1rem; }
+  .mt2 { margin-top: 1.5rem; }
+  .mb { margin-bottom: 1rem; }
+  .row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+  .tag { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; background: var(--surface2); border: 1px solid var(--border); color: var(--text3); padding: 0.2rem 0.6rem; }
+  .tag.green { border-color: var(--green); color: var(--green); }
+  .tag.orange { border-color: var(--accent); color: var(--accent); }
+  .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+  .complete-banner { display: none; background: var(--green); color: #fff; text-align: center; padding: 0.8rem; font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 0.08em; margin-bottom: 1rem; }
+  .warmup-card { background: var(--surface2); border: 1px dashed var(--border2); padding: 0.9rem 1rem; margin-bottom: 1rem; }
+  .warmup-card .label { color: var(--green); }
+  .warmup-list { font-size: 0.8rem; color: var(--text2); list-style: none; }
+  .warmup-list li { padding: 0.2rem 0; }
+  .warmup-list li::before { content: '→ '; color: var(--green); }
+
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns: repeat(3,1fr); }
+    .session-grid { grid-template-columns: 1fr 1fr; }
+    .log-grid { grid-template-columns: 1fr; }
+    .week-strip { grid-template-columns: repeat(4,1fr); }
+    .phase-tabs { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">Dan's Build</div>
+  <button class="nav-btn active" onclick="showPage('home', this)">Home</button>
+  <button class="nav-btn" onclick="showPage('today', this)">Today</button>
+  <button class="nav-btn" onclick="showPage('plan', this)">8-Week Plan</button>
+  <button class="nav-btn" onclick="showPage('micro', this)">Daily Routines</button>
+  <button class="nav-btn" onclick="showPage('nutrition', this)">Nutrition</button>
+  <button class="nav-btn" onclick="showPage('log', this)">Log & Stats</button>
+  <button class="nav-btn" onclick="showPage('next', this)">What Next</button>
+</nav>
+
+<!-- HOME -->
+<div id="page-home" class="page active">
+  <div class="label">Personal Training Plan · Starts Tue 2 June 2026</div>
+  <h1>Dan's<br><span>8-Week</span><br>Build</h1>
+  <p class="muted mt" style="font-size:0.88rem; max-width:440px;">Chest, arms & abs focus, with legs and a second back day added for balance. Bodyweight + pull-up bar. Tue / Thu / Fri / Sat. Built around your body data, photos, strength numbers and goals.</p>
+
+  <div class="stats-grid">
+    <div class="stat"><div class="stat-num">62.9</div><div class="stat-lbl">kg weight</div></div>
+    <div class="stat"><div class="stat-num">12.9%</div><div class="stat-lbl">body fat</div></div>
+    <div class="stat"><div class="stat-num">50.7</div><div class="stat-lbl">kg muscle</div></div>
+    <div class="stat"><div class="stat-num">19.4</div><div class="stat-lbl">BMI</div></div>
+    <div class="stat"><div class="stat-num">7+</div><div class="stat-lbl">pull-ups</div></div>
+    <div class="stat"><div class="stat-num">1–5</div><div class="stat-lbl">press-ups</div></div>
+  </div>
+
+  <h2>Key Insights</h2>
+  <div class="card card-accent mb">
+    <div class="label">Body composition</div>
+    <p style="font-size:0.85rem;">You're already lean at 12.9% body fat. You don't need to lose fat — you need to <strong style="color:var(--text);">build muscle</strong>. Definition comes from muscle under the skin, not from cutting. Eat enough.</p>
+  </div>
+  <div class="card card-accent mb">
+    <div class="label">Strength imbalance</div>
+    <p style="font-size:0.85rem;">7+ pull-ups but only 1–5 press-ups. Your rowing background put your back & biceps ahead. Your <strong style="color:var(--text);">chest & triceps are the priority</strong> (trained 3×/week) — expect fast progress. Friday adds a 2nd back session so pulling doesn't stall.</p>
+  </div>
+  <div class="card card-blue mb">
+    <div class="label">Train smart, not to failure</div>
+    <p style="font-size:0.85rem;">On most sets, stop with <strong style="color:var(--text);">1–2 reps left in the tank</strong> (reps in reserve). Only push the last set of an exercise close to true failure. This builds nearly the same muscle with far less fatigue and lower injury risk — the evidence is clear on this.</p>
+  </div>
+  <div class="card card-accent mb">
+    <div class="label">Sleep — your weak point</div>
+    <p style="font-size:0.85rem;">6–7 hrs is limiting muscle repair. Getting to 7.5 hrs consistently is the single highest-leverage change outside training. Muscle is built asleep, not in the session.</p>
+  </div>
+  <div class="card card-green mb">
+    <div class="label">Exam season — stay flexible</div>
+    <p style="font-size:0.85rem;">You're sitting GCSEs. If a day is too much, the <strong style="color:var(--text);">Friday session is the first to drop</strong> — it's a short bonus, not essential. Consistency over 8 weeks beats a perfect week followed by burnout. Missing a session never undoes your progress.</p>
+  </div>
+
+  <h2>8-Week Targets</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:1.5rem;">
+    <div style="background:var(--surface);padding:1rem;">
+      <div class="label">Week 4</div>
+      <ul style="list-style:none;font-size:0.82rem;color:var(--text2);">
+        <li style="padding:0.25rem 0;border-bottom:1px solid var(--border);">→ 10+ floor press-ups</li>
+        <li style="padding:0.25rem 0;border-bottom:1px solid var(--border);">→ 9+ pull-ups</li>
+        <li style="padding:0.25rem 0;border-bottom:1px solid var(--border);">→ 25+ bodyweight squats</li>
+        <li style="padding:0.25rem 0;">→ 60 sec plank</li>
+      </ul>
+    </div>
+    <div style="background:var(--surface);padding:1rem;">
+      <div class="label">Week 8</div>
+      <ul style="list-style:none;font-size:0.82rem;color:var(--text2);">
+        <li style="padding:0.25rem 0;border-bottom:1px solid var(--border);">→ 20+ press-ups</li>
+        <li style="padding:0.25rem 0;border-bottom:1px solid var(--border);">→ 12+ pull-ups</li>
+        <li style="padding:0.25rem 0;border-bottom:1px solid var(--border);">→ Bulgarian split squats with control</li>
+        <li style="padding:0.25rem 0;">→ Visible chest definition</li>
+      </ul>
+    </div>
+  </div>
+
+  <button class="btn" onclick="showPage('today', document.querySelectorAll('.nav-btn')[1])">See Today's Session →</button>
+</div>
+
+<!-- TODAY -->
+<div id="page-today" class="page">
+  <div id="today-content"></div>
+</div>
+
+<!-- PLAN -->
+<div id="page-plan" class="page">
+  <div class="label">Full Programme</div>
+  <h1 style="font-size:2.5rem;">8-Week<br><span>Plan</span></h1>
+  <p class="muted mt mb" style="font-size:0.85rem;">Tue / Thu / Fri / Sat. Bar available Thu & Fri (and Wed if you want extra). Start: Tuesday 2 June 2026.</p>
+
+  <div class="card card-blue mb">
+    <div class="label">How to read the sets</div>
+    <p style="font-size:0.82rem;">e.g. <strong style="color:var(--text);">"3 × 10–12 (1–2 RIR)"</strong> = 3 sets of 10–12 reps, stopping each set with 1–2 reps in reserve. <strong style="color:var(--text);">"× max"</strong> = as many clean reps as you can with good form (still stop if form breaks). Rest 60–90 sec between sets.</p>
+  </div>
+
+  <div class="label mt">Your week</div>
+  <div class="week-strip" id="week-strip"></div>
+
+  <div class="phase-tabs" id="phase-tabs">
+    <button class="phase-tab active" onclick="showPhase(1, this)">Phase 1<br><span style="font-size:0.6rem;opacity:0.7;">Wks 1–2</span></button>
+    <button class="phase-tab" onclick="showPhase(2, this)">Phase 2<br><span style="font-size:0.6rem;opacity:0.7;">Wks 3–4</span></button>
+    <button class="phase-tab" onclick="showPhase(3, this)">Phase 3<br><span style="font-size:0.6rem;opacity:0.7;">Wks 5–6</span></button>
+    <button class="phase-tab" onclick="showPhase(4, this)">Phase 4<br><span style="font-size:0.6rem;opacity:0.7;">Wks 7–8</span></button>
+  </div>
+
+  <div id="phase-content"></div>
+
+  <div class="divider"></div>
+  <h2>Calendar View</h2>
+  <p class="small mb">June & July 2026 — your full 8-week window</p>
+  <div class="cal-legend">
+    <span class="legend-item"><span class="legend-swatch" style="border-color:var(--accent);"></span> Training day</span>
+    <span class="legend-item"><span class="legend-swatch" style="border-color:var(--text2);background:var(--surface3);"></span> Today</span>
+    <span class="legend-item"><span style="color:var(--green);">micro</span> = micro routine only</span>
+  </div>
+  <div id="calendar-view"></div>
+</div>
+
+<!-- MICRO -->
+<div id="page-micro" class="page">
+  <div class="label">Daily Habits</div>
+  <h1 style="font-size:2.5rem;">Micro<br><span>Routines</span></h1>
+  <p class="muted mt mb" style="font-size:0.85rem;">Every day, even rest days. Under 5 mins each. These compound fast — don't skip them.</p>
+
+  <h2>After Breakfast — Morning</h2>
+  <div class="card mb">
+    <p class="small mb">On training days (Tue / Thu / Fri / Sat) — skip this. Your session covers it.</p>
+    <div class="micro-item"><div class="tick-box" onclick="toggleMicro(this)"></div><span style="flex:1;font-size:0.84rem;">Arm circles forward + back</span><span class="micro-time">30 sec</span></div>
+    <div class="micro-item"><div class="tick-box" onclick="toggleMicro(this)"></div><span style="flex:1;font-size:0.84rem;">10 × slow press-ups (any kind)</span><span class="micro-time">~1 min</span></div>
+    <div class="micro-item"><div class="tick-box" onclick="toggleMicro(this)"></div><span style="flex:1;font-size:0.84rem;">Plank hold</span><span class="micro-time">30 sec</span></div>
+    <div class="micro-item"><div class="tick-box" onclick="toggleMicro(this)"></div><span style="flex:1;font-size:0.84rem;">10 × bodyweight squats</span><span class="micro-time">~1 min</span></div>
+    <div class="micro-item"><div class="tick-box" onclick="toggleMicro(this)"></div><span style="flex:1;font-size:0.84rem;">Chest doorframe stretch</span><span class="micro-time">30 sec</span></div>
+  </div>
+
+  <h2>1 Hour Before Sleep — Evening</h2>
+  <div class="card mb">
+    <p class="small mb">Timed for 1hr before sleep deliberately — this routine improves sleep quality, your biggest recovery lever.</p>
+    <div class="micro-item"><div class="tick-box" onclick="toggleMicro(this)"></div><span style="flex:1;font-size:0.84rem;">Chest doorframe stretch</span><span class="micro-time">30 sec</span></div>
+    <div class="micro-item"><div class="tick-box" onclick="toggleMicro(this)"></div><span style="flex:1;font-size:0.84rem;">Lat stretch — arm overhead, lean each side</span><span class="micro-time">30 sec ea</span></div>
+    <div class="micro-item"><div class="tick-box" onclick="toggleMicro(this)"></div><span style="flex:1;font-size:0.84rem;">Hollow body hold</span><span class="micro-time">20 sec</span></div>
+    <div class="micro-item"><div class="tick-box" onclick="toggleMicro(this)"></div><span style="flex:1;font-size:0.84rem;">Hip flexor stretch (from lunge)</span><span class="micro-time">30 sec ea</span></div>
+    <div class="micro-item"><div class="tick-box" onclick="toggleMicro(this)"></div><span style="flex:1;font-size:0.84rem;">Slow deep breathing — 4 in, hold 4, out 6</span><span class="micro-time">1 min</span></div>
+  </div>
+
+  <h2>Rowing — Once a Week</h2>
+  <div class="card card-accent">
+    <p style="font-size:0.84rem;">Your rowing background is why your pull-ups are already strong. Once a week, do a 20–30 min easy row if you have erg access. <strong style="color:var(--text);">This is active recovery, not training</strong> — keep it easy. It maintains your cardio base and that muscle memory. No erg? A 20 min brisk walk does the same job.</p>
+  </div>
+</div>
+
+<!-- NUTRITION -->
+<div id="page-nutrition" class="page">
+  <div class="label">Fuelling the Build</div>
+  <h1 style="font-size:2.5rem;">Nutri<span>tion</span></h1>
+  <p class="muted mt mb" style="font-size:0.85rem;">No calorie counting. No meal plans. Three targeted changes only. Target: ~120–130g protein per day (≈2g per kg — right in the evidence-backed range for muscle growth).</p>
+
+  <h2>Daily Meals</h2>
+  <div style="border:1px solid var(--border);margin-bottom:1.5rem;">
+    <div class="nut-row"><span class="nut-meal">Breakfast</span><span>Eggs (already doing this ✓). Add a piece of fruit alongside. Never skip it — your protein anchor for the day.</span></div>
+    <div class="nut-row"><span class="nut-meal">Lunch</span><span>Add a protein source every time — chicken, tuna, cheese, Greek yoghurt, or a glass of milk. Doesn't need to be elaborate.</span></div>
+    <div class="nut-row"><span class="nut-meal">Dinner</span><span>Add one vegetable. Anything — frozen is completely fine. For the micronutrients that support muscle repair overnight.</span></div>
+    <div class="nut-row"><span class="nut-meal">Snacks</span><span>Greek yoghurt, boiled eggs, milk, banana + peanut butter. Easy protein between meals.</span></div>
+    <div class="nut-row"><span class="nut-meal">Takeaway</span><span>Once a week max. Not about calories — heavily processed food blunts recovery more than people realise.</span></div>
+    <div class="nut-row"><span class="nut-meal">Drinks</span><span>Cut fizzy / sugary drinks where you can. Your hydration is already good — keep it up.</span></div>
+  </div>
+
+  <h2>Protein Cheat Sheet</h2>
+  <div style="border:1px solid var(--border);margin-bottom:1.5rem;">
+    <div style="display:grid;grid-template-columns:1fr auto auto;gap:0;background:var(--border);">
+      <div style="background:var(--surface2);padding:0.5rem 0.8rem;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Food</div>
+      <div style="background:var(--surface2);padding:0.5rem 0.8rem;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);text-align:center;">Protein</div>
+      <div style="background:var(--surface2);padding:0.5rem 0.8rem;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);text-align:center;">Effort</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr auto auto;border-bottom:1px solid var(--border);"><div style="background:var(--surface);padding:0.55rem 0.8rem;font-size:0.82rem;">2 eggs</div><div style="background:var(--surface);padding:0.55rem 0.8rem;font-size:0.82rem;color:var(--accent);text-align:center;font-weight:500;">12g</div><div style="background:var(--surface);padding:0.55rem 0.8rem;font-size:0.72rem;color:var(--text3);text-align:center;">None</div></div>
+    <div style="display:grid;grid-template-columns:1fr auto auto;border-bottom:1px solid var(--border);"><div style="background:var(--surface);padding:0.55rem 0.8rem;font-size:0.82rem;">Chicken breast 150g</div><div style="background:var(--surface);padding:0.55rem 0.8rem;font-size:0.82rem;color:var(--accent);text-align:center;font-weight:500;">45g</div><div style="background:var(--surface);padding:0.55rem 0.8rem;font-size:0.72rem;color:var(--text3);text-align:center;">Low</div></div>
+    <div style="display:grid;grid-template-columns:1fr auto auto;border-bottom:1px solid var(--border);"><div style="background:var(--surface);padding:0.55rem 0.8rem;font-size:0.82rem;">Greek yoghurt 200g</div><div style="background:var(--surface);padding:0.55rem 0.8rem;font-size:0.82rem;color:var(--accent);text-align:center;font-weight:500;">20g</div><div style="background:var(--surface);padding:0.55rem 0.8rem;font-size:0.72rem;color:var(--text3);text-align:center;">None</div></div>
+    <div style="display:grid;grid-template-columns:1fr auto auto;border-bottom:1px solid var(--border);"><div style="background:var(--surface);padding:0.55rem 0.8rem;font-size:0.82rem;">Tin of tuna</div><div style="background:var(--surface);padding:0.55rem 0.8rem;font-size:0.82rem;color:var(--accent);text-align:center;font-weight:500;">25g</div><div style="background:var(--surface);padding:0.55rem 0.8rem;font-size:0.72rem;color:var(--text3);text-align:center;">None</div></div>
+    <div style="display:grid;grid-template-columns:1fr auto auto;border-bottom:1px solid var(--border);"><div style="background:var(--surface);padding:0.55rem 0.8rem;font-size:0.82rem;">Glass of milk 300ml</div><div style="background:var(--surface);padding:0.55rem 0.8rem;font-size:0.82rem;color:var(--accent);text-align:center;font-weight:500;">10g</div><div style="background:var(--surface);padding:0.55rem 0.8rem;font-size:0.72rem;color:var(--text3);text-align:center;">None</div></div>
+    <div style="display:grid;grid-template-columns:1fr auto auto;border-bottom:1px solid var(--border);"><div style="background:var(--surface);padding:0.55rem 0.8rem;font-size:0.82rem;">Cheddar 40g</div><div style="background:var(--surface);padding:0.55rem 0.8rem;font-size:0.82rem;color:var(--accent);text-align:center;font-weight:500;">10g</div><div style="background:var(--surface);padding:0.55rem 0.8rem;font-size:0.72rem;color:var(--text3);text-align:center;">None</div></div>
+    <div style="display:grid;grid-template-columns:1fr auto auto;"><div style="background:var(--surface);padding:0.55rem 0.8rem;font-size:0.82rem;">Peanut butter 2 tbsp</div><div style="background:var(--surface);padding:0.55rem 0.8rem;font-size:0.82rem;color:var(--accent);text-align:center;font-weight:500;">8g</div><div style="background:var(--surface);padding:0.55rem 0.8rem;font-size:0.72rem;color:var(--text3);text-align:center;">None</div></div>
+  </div>
+
+  <div class="card card-accent">
+    <div class="label">The one rule that matters most</div>
+    <p style="font-size:0.85rem;">Eat enough. You're lean, growing, and building muscle — this is not the time to restrict. If you're hungry, eat more, leaning on protein. You won't accidentally get fat at your build.</p>
+  </div>
+</div>
+
+<!-- LOG -->
+<div id="page-log" class="page">
+  <div class="label">Track Your Progress</div>
+  <h1 style="font-size:2.5rem;">Log &<br><span>Stats</span></h1>
+  <p class="muted mt mb" style="font-size:0.85rem;">Log your key lifts after each session. Weigh in once a week, same time of day.</p>
+
+  <h2>Log a Session</h2>
+  <div class="log-grid">
+    <div class="log-cell"><label>Date</label><input class="log-input" type="date" id="log-date"></div>
+    <div class="log-cell"><label>Session</label><select class="log-input" id="log-session"><option>Tuesday — Push + Legs + Abs</option><option>Thursday — Pull + Push + Abs</option><option>Friday — Short Pull + Core</option><option>Saturday — Push + Legs + Abs</option></select></div>
+    <div class="log-cell"><label>Max Press-ups (1 set)</label><input class="log-input" type="number" id="log-pressups" placeholder="e.g. 8" min="0"></div>
+    <div class="log-cell"><label>Max Pull-ups (1 set)</label><input class="log-input" type="number" id="log-pullups" placeholder="e.g. 7" min="0"></div>
+    <div class="log-cell"><label>Max Squats (1 set)</label><input class="log-input" type="number" id="log-squats" placeholder="e.g. 20" min="0"></div>
+    <div class="log-cell"><label>Max Plank (seconds)</label><input class="log-input" type="number" id="log-plank" placeholder="e.g. 40" min="0"></div>
+    <div class="log-cell"><label>Weight (kg) — weekly</label><input class="log-input" type="number" id="log-weight" placeholder="e.g. 63.1" step="0.1"></div>
+    <div class="log-cell"><label>Notes (optional)</label><input class="log-input" type="text" id="log-notes" placeholder="How did it feel?"></div>
+  </div>
+  <button class="btn" onclick="saveLog()">Save Session →</button>
+  <span id="log-saved" style="display:none;margin-left:1rem;font-size:0.8rem;color:var(--green);">✓ Saved</span>
+
+  <div class="divider"></div>
+  <h2>Progress Charts</h2>
+  <div id="charts-area"></div>
+
+  <div class="divider"></div>
+  <h2>Session History</h2>
+  <div id="log-history"></div>
+  <button class="btn-ghost mt" onclick="clearLog()" style="font-size:0.75rem;">Clear all log data</button>
+</div>
+
+<!-- WHAT NEXT -->
+<div id="page-next" class="page">
+  <div class="label">After Week 8</div>
+  <h1 style="font-size:2.5rem;">What<br><span>Next</span></h1>
+  <p class="muted mt mb" style="font-size:0.85rem;">You've built your base. Here's exactly how to keep the momentum going.</p>
+
+  <h2>Assess First</h2>
+  <div class="card mb">
+    <p style="font-size:0.84rem;">Before moving on, honestly test yourself:</p>
+    <ul style="list-style:none;font-size:0.83rem;margin-top:0.75rem;">
+      <li style="padding:0.3rem 0;border-bottom:1px solid var(--border);color:var(--text2);">→ How many full press-ups can you do?</li>
+      <li style="padding:0.3rem 0;border-bottom:1px solid var(--border);color:var(--text2);">→ How many pull-ups?</li>
+      <li style="padding:0.3rem 0;border-bottom:1px solid var(--border);color:var(--text2);">→ Can you do clean Bulgarian split squats?</li>
+      <li style="padding:0.3rem 0;color:var(--text2);">→ Can you hold a hollow body for 40+ seconds?</li>
+    </ul>
+  </div>
+
+  <h2>The Next Progressions</h2>
+  <div class="next-phase"><div class="next-phase-title">Option A — Stay Bodyweight, Go Harder</div><p>Progress to harder variations: archer & pseudo-planche press-ups, one-arm negatives, pistol squats, L-sits, toes-to-bar. Serious functional strength with zero equipment cost.</p></div>
+  <div class="next-phase"><div class="next-phase-title">Option B — Add the Gym (Now Worth It)</div><p>After 8 weeks you'll have a real pressing base. Now bench press, cable flyes and dumbbell work will add mass faster than bodyweight alone. At this point £3/visit is genuinely worth it and you'll know what you're doing.</p></div>
+  <div class="next-phase"><div class="next-phase-title">Option C — Resistance Bands (£15–20 one-off)</div><p>Bands bridge bodyweight and gym — banded press-ups, rows, curls, tricep extensions, and leg work at home. A full set costs less than a month of gym visits and lasts years.</p></div>
+
+  <div class="divider"></div>
+  <h2>Long-Term Benchmarks</h2>
+  <div style="border:1px solid var(--border);margin-bottom:1.5rem;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);">
+      <div style="background:var(--surface2);padding:0.5rem;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Exercise</div>
+      <div style="background:var(--surface2);padding:0.5rem;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Good</div>
+      <div style="background:var(--surface2);padding:0.5rem;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Strong</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border-top:1px solid var(--border);"><div style="background:var(--surface);padding:0.6rem 0.5rem;font-size:0.82rem;">Press-ups</div><div style="background:var(--surface);padding:0.6rem 0.5rem;font-size:0.82rem;color:var(--green);">30+</div><div style="background:var(--surface);padding:0.6rem 0.5rem;font-size:0.82rem;color:var(--accent);">50+</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border-top:1px solid var(--border);"><div style="background:var(--surface);padding:0.6rem 0.5rem;font-size:0.82rem;">Pull-ups</div><div style="background:var(--surface);padding:0.6rem 0.5rem;font-size:0.82rem;color:var(--green);">12+</div><div style="background:var(--surface);padding:0.6rem 0.5rem;font-size:0.82rem;color:var(--accent);">20+</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border-top:1px solid var(--border);"><div style="background:var(--surface);padding:0.6rem 0.5rem;font-size:0.82rem;">Plank</div><div style="background:var(--surface);padding:0.6rem 0.5rem;font-size:0.82rem;color:var(--green);">2 min</div><div style="background:var(--surface);padding:0.6rem 0.5rem;font-size:0.82rem;color:var(--accent);">5 min</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border-top:1px solid var(--border);"><div style="background:var(--surface);padding:0.6rem 0.5rem;font-size:0.82rem;">Pistol squat</div><div style="background:var(--surface);padding:0.6rem 0.5rem;font-size:0.82rem;color:var(--green);">1 each leg</div><div style="background:var(--surface);padding:0.6rem 0.5rem;font-size:0.82rem;color:var(--accent);">5 each leg</div></div>
+  </div>
+
+  <h2>The Diet Upgrade</h2>
+  <div class="card card-accent">
+    <p style="font-size:0.84rem;">After 8 weeks training consistently, one optional upgrade: <strong style="color:var(--text);">eat a bit more</strong>. Add a 4th meal or a protein-heavy snack. At your lean build a slight calorie surplus accelerates muscle gain. You won't get fat — you'll get bigger.</p>
+  </div>
+</div>
+
+<script>
+const START_DATE = new Date(2026, 5, 2); // First Tuesday (local time; month is 0-indexed)
+
+const YT = {
+  press: 'https://www.youtube.com/results?search_query=push+up+perfect+form',
+  elevated: 'https://www.youtube.com/results?search_query=elevated+push+ups+beginner',
+  diamond: 'https://www.youtube.com/results?search_query=diamond+push+ups+how+to',
+  wide: 'https://www.youtube.com/results?search_query=wide+push+up+chest',
+  pike: 'https://www.youtube.com/results?search_query=pike+push+up+how+to',
+  archer: 'https://www.youtube.com/results?search_query=archer+push+up+how+to',
+  dips: 'https://www.youtube.com/results?search_query=tricep+dips+chair+how+to',
+  pullup: 'https://www.youtube.com/results?search_query=pull+up+form+how+to',
+  chinup: 'https://www.youtube.com/results?search_query=chin+up+vs+pull+up+biceps',
+  hang: 'https://www.youtube.com/results?search_query=dead+hang+benefits',
+  negpull: 'https://www.youtube.com/results?search_query=negative+pull+up+beginner',
+  squat: 'https://www.youtube.com/results?search_query=bodyweight+squat+form',
+  lunge: 'https://www.youtube.com/results?search_query=reverse+lunge+form',
+  walklunge: 'https://www.youtube.com/results?search_query=walking+lunge+form',
+  bulgarian: 'https://www.youtube.com/results?search_query=bulgarian+split+squat+how+to',
+  glute: 'https://www.youtube.com/results?search_query=glute+bridge+how+to',
+  sglute: 'https://www.youtube.com/results?search_query=single+leg+glute+bridge',
+  calf: 'https://www.youtube.com/results?search_query=standing+calf+raise+how+to',
+  jumpsquat: 'https://www.youtube.com/results?search_query=jump+squat+form',
+  plank: 'https://www.youtube.com/results?search_query=plank+form+beginner',
+  legraise: 'https://www.youtube.com/results?search_query=lying+leg+raises+how+to',
+  hkr: 'https://www.youtube.com/results?search_query=hanging+knee+raise+how+to',
+  hlr: 'https://www.youtube.com/results?search_query=hanging+leg+raise+how+to',
+  bicycle: 'https://www.youtube.com/results?search_query=bicycle+crunches+form',
+  hollow: 'https://www.youtube.com/results?search_query=hollow+body+hold+how+to'
+};
+
+const WARMUP = ['Arm circles — forward & back (30s)','Leg swings — front & side (30s each)','10 slow bodyweight squats','5 slow incline press-ups','Shoulder rolls + wrist circles (30s)'];
+
+const PHASES = {
+  1: { weeks:'1–2', name:'Foundation', sub:'Build the pressing habit, learn the movements, ease legs in.',
+    sessions: {
+      tue:{label:'Tuesday — Push + Legs + Abs', bar:false, note:'No bar needed. Stop most sets 1–2 reps short; last set near failure.', exercises:[
+        {name:'Elevated press-ups (hands on step/chair)', sets:'3 × 10–12 (1–2 RIR)', yt:YT.elevated},
+        {name:'Diamond press-ups (elevated)', sets:'3 × 6–8', yt:YT.diamond},
+        {name:'Bodyweight squats', sets:'3 × 15', yt:YT.squat},
+        {name:'Reverse lunges', sets:'3 × 8 each leg', yt:YT.lunge},
+        {name:'Glute bridges', sets:'3 × 12', yt:YT.glute},
+        {name:'Plank', sets:'3 × 30 sec', yt:YT.plank},
+        {name:'Leg raises', sets:'3 × 10', yt:YT.legraise}]},
+      thu:{label:'Thursday — Pull + Push + Abs', bar:true, note:'Bar day. Your most important session. Leave 1 in reserve on early pull sets.', exercises:[
+        {name:'Pull-ups', sets:'4 × 5–7 (1 RIR)', yt:YT.pullup},
+        {name:'Dead hang', sets:'3 × 20 sec', yt:YT.hang},
+        {name:'Elevated press-ups', sets:'3 × 10–12', yt:YT.elevated},
+        {name:'Diamond press-ups (elevated)', sets:'3 × 6–8', yt:YT.diamond},
+        {name:'Hollow body hold', sets:'3 × 15 sec', yt:YT.hollow},
+        {name:'Plank', sets:'3 × 30 sec', yt:YT.plank}]},
+      fri:{label:'Friday — Short Pull + Core', bar:true, note:'Short bonus (~20 min). The 2nd back dose. Drop this one first if exams are heavy.', exercises:[
+        {name:'Pull-ups', sets:'3 × 5 (controlled)', yt:YT.pullup},
+        {name:'Chin-ups (palms facing you)', sets:'3 × max (1 RIR)', yt:YT.chinup},
+        {name:'Dead hang', sets:'2 × 25 sec', yt:YT.hang},
+        {name:'Hanging knee raises', sets:'3 × 10', yt:YT.hkr}]},
+      sat:{label:'Saturday — Push + Legs + Abs', bar:false, note:'Wide press-ups hit outer chest — your weakest area. Prioritise them.', exercises:[
+        {name:'Wide press-ups', sets:'3 × 8–10', yt:YT.wide},
+        {name:'Standard or elevated press-ups', sets:'3 × 10', yt:YT.press},
+        {name:'Pike press-ups', sets:'3 × 8', yt:YT.pike},
+        {name:'Forward / walking lunges', sets:'3 × 10 each', yt:YT.walklunge},
+        {name:'Calf raises', sets:'3 × 20', yt:YT.calf},
+        {name:'Bicycle crunches', sets:'3 × 15 each', yt:YT.bicycle},
+        {name:'Plank', sets:'3 × 35 sec', yt:YT.plank}]}
+    }},
+  2: { weeks:'3–4', name:'Progression', sub:'Drop to floor press-ups, add volume, deepen the legs.',
+    sessions: {
+      tue:{label:'Tuesday — Push + Legs + Abs', bar:false, note:'Floor press-ups now (knees if needed). Add a set vs Phase 1.', exercises:[
+        {name:'Floor press-ups', sets:'4 × max', yt:YT.press},
+        {name:'Wide press-ups', sets:'4 × max', yt:YT.wide},
+        {name:'Diamond press-ups', sets:'3 × 8–10', yt:YT.diamond},
+        {name:'Bodyweight squats', sets:'4 × 18', yt:YT.squat},
+        {name:'Bulgarian split squats', sets:'3 × 8 each', yt:YT.bulgarian},
+        {name:'Glute bridges', sets:'3 × 15', yt:YT.glute},
+        {name:'Plank', sets:'4 × 40 sec', yt:YT.plank},
+        {name:'Leg raises', sets:'4 × 12', yt:YT.legraise}]},
+      thu:{label:'Thursday — Pull + Push + Abs', bar:true, note:'Add chin-ups — they hit biceps directly.', exercises:[
+        {name:'Pull-ups', sets:'4 × 7–9', yt:YT.pullup},
+        {name:'Chin-ups', sets:'3 × max', yt:YT.chinup},
+        {name:'Floor press-ups', sets:'3 × max', yt:YT.press},
+        {name:'Diamond press-ups', sets:'3 × 8–10', yt:YT.diamond},
+        {name:'Bicycle crunches', sets:'4 × 20 each', yt:YT.bicycle},
+        {name:'Plank', sets:'3 × 45 sec', yt:YT.plank}]},
+      fri:{label:'Friday — Short Pull + Core', bar:true, note:'Short (~20 min). Negatives build the strength for more pull-ups.', exercises:[
+        {name:'Pull-ups', sets:'3 × 6', yt:YT.pullup},
+        {name:'Chin-ups', sets:'3 × max', yt:YT.chinup},
+        {name:'Negative pull-ups (5 sec lower)', sets:'2 × 4', yt:YT.negpull},
+        {name:'Dead hang', sets:'2 × 30 sec', yt:YT.hang},
+        {name:'Hanging knee raises', sets:'3 × 12', yt:YT.hkr}]},
+      sat:{label:'Saturday — Push + Legs + Abs', bar:false, note:'Introduce tricep dips for arm definition.', exercises:[
+        {name:'Wide press-ups', sets:'4 × max', yt:YT.wide},
+        {name:'Pike press-ups', sets:'4 × 10–12', yt:YT.pike},
+        {name:'Tricep dips (chair/step)', sets:'3 × 12', yt:YT.dips},
+        {name:'Reverse lunges', sets:'4 × 10 each', yt:YT.lunge},
+        {name:'Single-leg glute bridge', sets:'3 × 8 each', yt:YT.sglute},
+        {name:'Calf raises', sets:'3 × 25', yt:YT.calf},
+        {name:'Hollow body hold', sets:'3 × 25 sec', yt:YT.hollow}]}
+    }},
+  3: { weeks:'5–6', name:'Intensity', sub:'Full press-ups, tempo squats, push closer to failure.',
+    sessions: {
+      tue:{label:'Tuesday — Push + Legs + Abs', bar:false, note:'Last 2 sets of each press near failure. Rest 90 sec.', exercises:[
+        {name:'Standard press-ups', sets:'4 × max', yt:YT.press},
+        {name:'Wide press-ups', sets:'4 × max', yt:YT.wide},
+        {name:'Diamond press-ups', sets:'4 × max', yt:YT.diamond},
+        {name:'Tricep dips', sets:'3 × 15', yt:YT.dips},
+        {name:'Tempo squats (3 sec down)', sets:'4 × 15', yt:YT.squat},
+        {name:'Bulgarian split squats', sets:'3 × 10 each', yt:YT.bulgarian},
+        {name:'Plank', sets:'4 × 50 sec', yt:YT.plank},
+        {name:'Leg raises', sets:'4 × 15', yt:YT.legraise}]},
+      thu:{label:'Thursday — Pull + Push + Abs', bar:true, note:'Pull-ups should feel easier now — push the reps up.', exercises:[
+        {name:'Pull-ups', sets:'5 × 8–10', yt:YT.pullup},
+        {name:'Chin-ups', sets:'4 × max', yt:YT.chinup},
+        {name:'Wide press-ups', sets:'3 × max', yt:YT.wide},
+        {name:'Diamond press-ups', sets:'3 × max', yt:YT.diamond},
+        {name:'Bicycle crunches', sets:'4 × 25 each', yt:YT.bicycle},
+        {name:'Plank', sets:'4 × 50 sec', yt:YT.plank}]},
+      fri:{label:'Friday — Short Pull + Core', bar:true, note:'Short (~20 min). Keep the back frequency high.', exercises:[
+        {name:'Pull-ups', sets:'4 × 7', yt:YT.pullup},
+        {name:'Chin-ups', sets:'3 × max', yt:YT.chinup},
+        {name:'Negative pull-ups (5 sec lower)', sets:'3 × 5', yt:YT.negpull},
+        {name:'Dead hang', sets:'2 × 35 sec', yt:YT.hang},
+        {name:'Hanging leg raises', sets:'3 × 12', yt:YT.hlr}]},
+      sat:{label:'Saturday — Push + Legs + Abs', bar:false, note:'Add jump squats for power. Highest push volume yet.', exercises:[
+        {name:'Wide press-ups', sets:'5 × max', yt:YT.wide},
+        {name:'Pike press-ups', sets:'4 × 12–15', yt:YT.pike},
+        {name:'Tricep dips', sets:'4 × 15', yt:YT.dips},
+        {name:'Jump squats', sets:'4 × 12', yt:YT.jumpsquat},
+        {name:'Walking lunges', sets:'4 × 12 each', yt:YT.walklunge},
+        {name:'Calf raises', sets:'4 × 25', yt:YT.calf},
+        {name:'Hollow body hold', sets:'4 × 30 sec', yt:YT.hollow}]}
+    }},
+  4: { weeks:'7–8', name:'Peak', sub:'Max volume, hardest variations, test your limits.',
+    sessions: {
+      tue:{label:'Tuesday — Push + Legs + Abs', bar:false, note:'Peak volume. You should be unrecognisable from Week 1.', exercises:[
+        {name:'Standard press-ups', sets:'5 × max', yt:YT.press},
+        {name:'Wide press-ups', sets:'5 × max', yt:YT.wide},
+        {name:'Diamond press-ups', sets:'4 × max', yt:YT.diamond},
+        {name:'Tricep dips', sets:'4 × 18', yt:YT.dips},
+        {name:'Squats', sets:'5 × 20', yt:YT.squat},
+        {name:'Bulgarian split squats', sets:'4 × 12 each', yt:YT.bulgarian},
+        {name:'Plank', sets:'4 × 60 sec', yt:YT.plank},
+        {name:'Leg raises', sets:'4 × 20', yt:YT.legraise}]},
+      thu:{label:'Thursday — Pull + Push + Abs', bar:true, note:'Try archer press-ups — the step toward one-arm press-ups.', exercises:[
+        {name:'Pull-ups', sets:'5 × 10–13', yt:YT.pullup},
+        {name:'Chin-ups', sets:'4 × max', yt:YT.chinup},
+        {name:'Archer press-ups', sets:'3 × 5 each side', yt:YT.archer},
+        {name:'Diamond press-ups', sets:'4 × max', yt:YT.diamond},
+        {name:'Bicycle crunches', sets:'4 × 30 each', yt:YT.bicycle},
+        {name:'Hollow body hold', sets:'4 × 35 sec', yt:YT.hollow}]},
+      fri:{label:'Friday — Short Pull + Core', bar:true, note:'Short (~20 min). Final block of dedicated back work.', exercises:[
+        {name:'Pull-ups', sets:'4 × 8', yt:YT.pullup},
+        {name:'Chin-ups', sets:'4 × max', yt:YT.chinup},
+        {name:'Negative pull-ups (5 sec lower)', sets:'3 × 6', yt:YT.negpull},
+        {name:'Dead hang', sets:'2 × 40 sec', yt:YT.hang},
+        {name:'Hanging leg raises', sets:'4 × 12', yt:YT.hlr}]},
+      sat:{label:'Saturday — Push + Legs + Abs', bar:false, note:'Final push. Leave everything on the floor.', exercises:[
+        {name:'Wide press-ups', sets:'5 × max', yt:YT.wide},
+        {name:'Pike press-ups', sets:'4 × 15+', yt:YT.pike},
+        {name:'Tricep dips', sets:'4 × 20', yt:YT.dips},
+        {name:'Jump squats', sets:'5 × 15', yt:YT.jumpsquat},
+        {name:'Walking lunges', sets:'5 × 12 each', yt:YT.walklunge},
+        {name:'Calf raises', sets:'4 × 30', yt:YT.calf},
+        {name:'Hollow body hold', sets:'4 × 40 sec', yt:YT.hollow},
+        {name:'Plank', sets:'3 × 75 sec', yt:YT.plank}]}
+    }}
+};
+
+const DAY_KEYS = { 2:'tue', 4:'thu', 5:'fri', 6:'sat' };
+const SESS_META = {
+  tue:{label:'Tuesday', focus:'Push + Legs + Abs'},
+  thu:{label:'Thursday', focus:'Pull + Push + Abs'},
+  fri:{label:'Friday', focus:'Short Pull + Core'},
+  sat:{label:'Saturday', focus:'Push + Legs + Abs'}
+};
+
+let currentPhase = 1;
+let currentSession = 'tue';
+let ticks = {};
+let logs = [];
+
+// ---- server persistence: state saved to Postgres, remembered across devices ----
+async function loadState() {
+  try { const r = await fetch('/api/plan/state'); if (r.ok) { const d = await r.json(); ticks = d.ticks || {}; } } catch (e) {}
+  try { const r = await fetch('/api/plan/logs'); if (r.ok) { logs = await r.json(); } } catch (e) {}
+}
+function saveTicks() {
+  fetch('/api/plan/state', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ticks }) }).catch(() => {});
+}
+function saveLogEntry(entry) {
+  fetch('/api/plan/logs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry) }).catch(() => {});
+}
+function clearLogsServer() {
+  fetch('/api/plan/logs', { method: 'DELETE' }).catch(() => {});
+}
+
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (id === 'today') renderToday();
+  if (id === 'plan') { renderWeekStrip(); renderPhase(currentPhase); renderCalendar(); }
+  if (id === 'log') { renderCharts(); renderHistory(); setDefaultDate(); }
+  window.scrollTo(0,0);
+}
+
+function getCurrentWeek() {
+  const now = new Date();
+  const diff = Math.floor((now - START_DATE) / (7 * 864e5));
+  return Math.max(1, Math.min(8, diff + 1));
+}
+function getPhaseForWeek(w) { return w <= 2 ? 1 : w <= 4 ? 2 : w <= 6 ? 3 : 4; }
+function getTodaySession() { return DAY_KEYS[new Date().getDay()] || null; }
+function isPreStart() { return new Date() < START_DATE; }
+
+function renderToday() {
+  const now = new Date();
+  const week = getCurrentWeek();
+  const phase = getPhaseForWeek(week);
+  const todaySess = getTodaySession();
+  const pre = isPreStart();
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const today = dayNames[now.getDay()];
+
+  let html = `<div class="label">Today</div><h1 style="font-size:2.5rem;">${today}<br><span>${now.toLocaleDateString('en-GB',{day:'numeric',month:'long'})}</span></h1>`;
+
+  if (pre) {
+    html += `<div class="today-banner mt"><div class="today-tag">Before Start</div><div class="today-title">Micro Routines Only</div><div class="today-sub">Training starts Tuesday 2 June. Until then, do your morning & evening micro routines to build the habit.</div></div>`;
+    html += renderMicroChecklist('pre-' + now.toDateString());
+  } else if (todaySess) {
+    const sess = PHASES[phase].sessions[todaySess];
+    const sessKey = 'sess-' + now.toDateString() + '-' + todaySess;
+    if (!ticks[sessKey]) ticks[sessKey] = {};
+    const done = ticks[sessKey];
+    const total = sess.exercises.length;
+    const completed = Object.values(done).filter(Boolean).length;
+    const pct = Math.round((completed / total) * 100);
+
+    html += `<div class="today-banner mt"><div class="today-tag">Week ${week} · Phase ${phase}: ${PHASES[phase].name} · ${sess.bar ? 'Bar day' : 'No bar needed'}</div><div class="today-title">${sess.label}</div><div class="today-sub">${sess.note}</div></div>`;
+
+    html += `<div class="warmup-card"><div class="label">Warm-up first · ~5 min</div><ul class="warmup-list">${WARMUP.map(w=>`<li>${w}</li>`).join('')}</ul></div>`;
+
+    html += `<div class="session-progress"><div class="progress-track"><div class="progress-fill" id="today-prog" style="width:${pct}%"></div></div><div class="progress-label" id="today-prog-lbl">${completed} / ${total} exercises done</div></div>`;
+    html += `<div id="today-complete-banner" class="complete-banner" style="display:${pct===100?'block':'none'}">🔥 Session Complete! Great work.</div>`;
+
+    html += `<div style="border:1px solid var(--border);">`;
+    sess.exercises.forEach((ex, i) => {
+      const checked = done[i] || false;
+      html += `<div class="tick-row ${checked?'ticked':''}" id="tick-row-${i}"><div class="tick-box ${checked?'checked':''}" onclick="toggleTick('${sessKey}', ${i}, ${total})"></div><span class="tick-name">${ex.name}</span><span class="tick-sets">${ex.sets}</span><a class="tick-yt" href="${ex.yt}" target="_blank">▶</a></div>`;
+    });
+    html += `</div>`;
+
+    html += `<h3 class="mt">Rest Timer</h3><div class="card"><div class="timer-box"><button class="timer-btn" onclick="startTimer(60)">60s</button><button class="timer-btn" onclick="startTimer(90)">90s</button><button class="timer-btn" onclick="startTimer(30)">30s plank</button><button class="timer-btn" onclick="startTimer(45)">45s</button><span class="timer-display" id="timer-display">0:00</span><button class="timer-btn" onclick="stopTimer()">Stop</button></div><p class="small mt">Tap a preset to count down your rest between sets, or a plank hold.</p></div>`;
+
+    html += `<div class="mt"><button class="btn" onclick="showPage('log', document.querySelectorAll('.nav-btn')[5])">Log This Session →</button></div>`;
+  } else {
+    html += `<div class="today-banner mt"><div class="today-tag">Rest Day</div><div class="today-title">Recovery & Micro Routine</div><div class="today-sub">No training today. Do your micro routines, eat well, and aim for 7.5 hrs sleep tonight.</div></div>`;
+    html += renderMicroChecklist('micro-' + now.toDateString());
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    let nd = new Date(now);
+    for (let i=1;i<=7;i++){ const c=new Date(now); c.setDate(c.getDate()+i); if(DAY_KEYS[c.getDay()]){ nd=c; break; } }
+    html += `<div class="card mt"><div class="label">Next Session</div><p style="font-size:0.85rem;">Your next training day is <strong style="color:var(--accent);">${days[nd.getDay()]} ${nd.toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</strong> — ${SESS_META[DAY_KEYS[nd.getDay()]].focus}.</p></div>`;
+  }
+  document.getElementById('today-content').innerHTML = html;
+}
+
+function renderMicroChecklist(key) {
+  const items = ['Morning: Arm circles','Morning: 10 press-ups','Morning: 30s plank','Morning: 10 squats','Evening: Chest stretch','Evening: Lat stretch','Evening: Hollow hold','Evening: Hip flexor stretch','Evening: Deep breathing'];
+  if (!ticks[key]) ticks[key] = {};
+  const done = ticks[key];
+  let html = `<h3 class="mt">Today's Micro Routines</h3><div style="border:1px solid var(--border);">`;
+  items.forEach((item, i) => {
+    const checked = done[i] || false;
+    html += `<div class="tick-row ${checked?'ticked':''}" id="mtick-${i}"><div class="tick-box ${checked?'checked':''}" onclick="toggleMicroTick('${key}',${i})"></div><span class="tick-name">${item}</span></div>`;
+  });
+  html += `</div>`;
+  return html;
+}
+
+function toggleTick(key, idx, total) {
+  if (!ticks[key]) ticks[key] = {};
+  ticks[key][idx] = !ticks[key][idx];
+  saveTicks();
+  const row = document.getElementById('tick-row-' + idx);
+  row.classList.toggle('ticked', ticks[key][idx]);
+  row.querySelector('.tick-box').classList.toggle('checked', ticks[key][idx]);
+  const completed = Object.values(ticks[key]).filter(Boolean).length;
+  const pct = Math.round((completed / total) * 100);
+  const p = document.getElementById('today-prog'); if (p) p.style.width = pct + '%';
+  const l = document.getElementById('today-prog-lbl'); if (l) l.textContent = completed + ' / ' + total + ' exercises done';
+  const b = document.getElementById('today-complete-banner'); if (b) b.style.display = pct === 100 ? 'block' : 'none';
+}
+
+function toggleMicroTick(key, idx) {
+  if (!ticks[key]) ticks[key] = {};
+  ticks[key][idx] = !ticks[key][idx];
+  saveTicks();
+  const row = document.getElementById('mtick-' + idx);
+  if (row) { row.classList.toggle('ticked', ticks[key][idx]); row.querySelector('.tick-box').classList.toggle('checked', ticks[key][idx]); }
+}
+
+function toggleMicro(el) { el.classList.toggle('checked'); el.closest('.micro-item').classList.toggle('ticked', el.classList.contains('checked')); }
+
+// Rest timer
+let timerInterval = null;
+function startTimer(secs) {
+  stopTimer();
+  let remaining = secs;
+  const disp = document.getElementById('timer-display');
+  const fmt = s => Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+  disp.textContent = fmt(remaining);
+  timerInterval = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) { disp.textContent = 'Done'; clearInterval(timerInterval); timerInterval = null; return; }
+    disp.textContent = fmt(remaining);
+  }, 1000);
+}
+function stopTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } const d = document.getElementById('timer-display'); if (d) d.textContent = '0:00'; }
+
+function renderWeekStrip() {
+  const current = getCurrentWeek();
+  let html = '';
+  for (let w = 1; w <= 8; w++) {
+    const cls = w < current ? 'done' : w === current ? 'current' : '';
+    html += `<div class="week-pip ${cls}" onclick="jumpToWeek(${w})"><span class="week-num-lbl">${w}</span>wk</div>`;
+  }
+  document.getElementById('week-strip').innerHTML = html;
+}
+function jumpToWeek(w) {
+  const p = getPhaseForWeek(w);
+  currentPhase = p;
+  document.querySelectorAll('.phase-tab').forEach((t,i) => t.classList.toggle('active', i+1 === p));
+  renderPhase(p);
+}
+
+function showPhase(p, btn) {
+  currentPhase = p;
+  document.querySelectorAll('.phase-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderPhase(p);
+}
+
+function renderPhase(p) {
+  const ph = PHASES[p];
+  let html = `<div class="label">Phase ${p}</div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--text);margin-bottom:0.25rem;">${ph.name} — Weeks ${ph.weeks}</div><p class="small mb">${ph.sub}</p>`;
+  html += `<div class="session-grid">`;
+  ['tue','thu','fri','sat'].forEach(s => {
+    html += `<div class="session-card ${currentSession===s?'active-session':''}" onclick="selectSession('${s}')"><div class="session-day">${SESS_META[s].label}</div><div class="session-focus">${SESS_META[s].focus}</div></div>`;
+  });
+  html += `</div>`;
+  html += renderSessionDetail(ph.sessions[currentSession]);
+  document.getElementById('phase-content').innerHTML = html;
+}
+function selectSession(s) { currentSession = s; renderPhase(currentPhase); }
+
+function renderSessionDetail(sess) {
+  let html = `<div style="border:1px solid var(--border);">`;
+  html += `<div style="background:var(--surface2);padding:0.8rem 1rem;border-bottom:1px solid var(--border);"><div style="font-size:0.7rem;color:var(--text2);">${sess.bar ? '🔓 Bar required · ' : '🏡 No equipment · '}${sess.note}</div></div>`;
+  sess.exercises.forEach(ex => {
+    html += `<div style="display:flex;align-items:center;gap:0.6rem;padding:0.6rem 0.8rem;border-bottom:1px solid var(--border);"><span style="flex:1;font-size:0.82rem;color:var(--text);">${ex.name}</span><span style="font-size:0.76rem;color:var(--accent);font-weight:500;white-space:nowrap;">${ex.sets}</span><a href="${ex.yt}" target="_blank" class="yt-link">▶</a></div>`;
+  });
+  html += `</div>`;
+  return html;
+}
+
+function renderCalendar() {
+  const months = [{ name:'June 2026', year:2026, month:5 }, { name:'July 2026', year:2026, month:6 }];
+  const today = new Date();
+  const END = new Date(2026, 6, 26); // local (month 0-indexed: 6 = July)
+  let html = '';
+  months.forEach(m => {
+    html += `<div class="label mt">${m.name}</div><div class="cal-grid">`;
+    ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(d => html += `<div class="cal-header">${d}</div>`);
+    const first = new Date(m.year, m.month, 1);
+    let pad = first.getDay() - 1; if (pad < 0) pad = 6;
+    for (let i = 0; i < pad; i++) html += `<div class="cal-day empty"></div>`;
+    const days = new Date(m.year, m.month + 1, 0).getDate();
+    for (let d = 1; d <= days; d++) {
+      const date = new Date(m.year, m.month, d);
+      const isToday = date.toDateString() === today.toDateString();
+      const inRange = date >= START_DATE && date <= END;
+      const isTrain = !!DAY_KEYS[date.getDay()] && inRange;
+      const wk = inRange ? Math.min(8, Math.floor((date - START_DATE)/(7*864e5)) + 1) : null;
+      const tag = isTrain ? (date.getDay()===5 ? 'Pull' : 'Train') : '';
+      html += `<div class="cal-day ${isTrain?'training':''} ${isToday?'today-cal':''}"><div class="day-num">${d}</div>${isTrain?`<span class="day-tag">${tag}</span>`:''}${isTrain&&wk?`<span class="day-micro" style="color:var(--text3);">W${wk}</span>`:''}${!isTrain&&inRange?`<span class="day-micro">micro</span>`:''}</div>`;
+    }
+    html += `</div>`;
+  });
+  document.getElementById('calendar-view').innerHTML = html;
+}
+
+function setDefaultDate() { const d = document.getElementById('log-date'); if (d && !d.value) d.value = new Date().toISOString().split('T')[0]; }
+
+function saveLog() {
+  const entry = {
+    date: document.getElementById('log-date').value,
+    session: document.getElementById('log-session').value,
+    pressups: document.getElementById('log-pressups').value,
+    pullups: document.getElementById('log-pullups').value,
+    squats: document.getElementById('log-squats').value,
+    plank: document.getElementById('log-plank').value,
+    weight: document.getElementById('log-weight').value,
+    notes: document.getElementById('log-notes').value,
+    ts: Date.now()
+  };
+  if (!entry.date) { entry.date = new Date().toISOString().split('T')[0]; }
+  logs.push(entry);
+  saveLogEntry(entry);
+  const saved = document.getElementById('log-saved');
+  saved.style.display = 'inline';
+  setTimeout(() => saved.style.display = 'none', 2000);
+  ['log-pressups','log-pullups','log-squats','log-plank','log-weight','log-notes'].forEach(id => document.getElementById(id).value = '');
+  renderCharts(); renderHistory();
+}
+function clearLog() { if (confirm('Clear all log data?')) { logs = []; clearLogsServer(); renderCharts(); renderHistory(); } }
+
+function renderCharts() {
+  const area = document.getElementById('charts-area');
+  if (!area) return;
+  if (logs.length === 0) { area.innerHTML = `<div class="card"><p class="small">No sessions logged yet. Log your first session above and charts will appear here.</p></div>`; return; }
+  const metrics = [
+    { key:'pressups', label:'Press-ups (max reps)', color:'var(--accent)' },
+    { key:'pullups', label:'Pull-ups (max reps)', color:'var(--blue)' },
+    { key:'squats', label:'Squats (max reps)', color:'#c9a227' },
+    { key:'plank', label:'Plank (seconds)', color:'var(--green)' },
+    { key:'weight', label:'Weight (kg)', color:'#aaa' }
+  ];
+  let html = '';
+  metrics.forEach(m => {
+    const data = logs.filter(l => l[m.key]).map(l => ({ date:l.date, val:parseFloat(l[m.key]) }));
+    if (data.length === 0) return;
+    const max = Math.max(...data.map(d => d.val));
+    html += `<div class="chart-wrap mb"><div class="label">${m.label}</div><div class="chart-bars">`;
+    data.slice(-10).forEach(d => {
+      const h = max > 0 ? Math.round((d.val / max) * 70) : 4;
+      html += `<div class="chart-bar-wrap"><span class="chart-val">${d.val}</span><div class="chart-bar" style="height:${h}px;background:${m.color};"></div><span class="chart-bar-lbl">${(d.date||'').slice(5)}</span></div>`;
+    });
+    html += `</div></div>`;
+  });
+  if (!html) html = `<div class="card"><p class="small">Log sessions with numbers to see charts.</p></div>`;
+  area.innerHTML = html;
+}
+
+function renderHistory() {
+  const area = document.getElementById('log-history');
+  if (!area) return;
+  if (logs.length === 0) { area.innerHTML = `<p class="small">No entries yet.</p>`; return; }
+  const sorted = [...logs].sort((a,b) => b.ts - a.ts);
+  area.innerHTML = sorted.slice(0, 25).map(l => `<div class="log-entry"><div><div style="font-size:0.84rem;color:var(--text);">${l.session||''}</div><div class="log-entry-date">${l.date||''}${l.notes ? ' · ' + l.notes : ''}</div></div><div style="text-align:right;display:flex;gap:0.7rem;align-items:center;">${l.pressups?`<div><div class="log-entry-val">${l.pressups}</div><div style="font-size:0.6rem;color:var(--text3);">press</div></div>`:''}${l.pullups?`<div><div class="log-entry-val" style="color:var(--blue);">${l.pullups}</div><div style="font-size:0.6rem;color:var(--text3);">pull</div></div>`:''}${l.squats?`<div><div class="log-entry-val" style="color:#c9a227;">${l.squats}</div><div style="font-size:0.6rem;color:var(--text3);">squat</div></div>`:''}${l.plank?`<div><div class="log-entry-val" style="color:var(--green);">${l.plank}s</div><div style="font-size:0.6rem;color:var(--text3);">plank</div></div>`:''}${l.weight?`<div><div class="log-entry-val" style="color:var(--text2);">${l.weight}</div><div style="font-size:0.6rem;color:var(--text3);">kg</div></div>`:''}</div></div>`).join('');
+}
+
+// Init
+(async () => {
+  await loadState();
+  renderWeekStrip();
+  renderPhase(1);
+  renderCalendar();
+})();
+</script>
+</body>
+</html>

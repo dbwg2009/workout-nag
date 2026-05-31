@@ -1,7 +1,7 @@
 import { and, eq, lt, desc } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import { getDb } from '../src/db/client';
-import { days, overrides, nudges, proofs, settings, workouts, type Day } from '../src/db/schema';
+import { days, overrides, nudges, proofs, settings, workouts, planLogs, type Day } from '../src/db/schema';
 
 const db = getDb();
 
@@ -135,4 +135,8 @@ export async function addWorkout(
 
 export async function getRecentWorkouts(limit = 15) {
   return db.select().from(workouts).orderBy(desc(workouts.date)).limit(limit);
+}
+
+export async function getRecentPlanLogs(limit = 10) {
+  return db.select().from(planLogs).orderBy(desc(planLogs.createdAt)).limit(limit);
 }

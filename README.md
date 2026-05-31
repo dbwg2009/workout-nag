@@ -45,6 +45,12 @@ If you just *type* that you're ill/injured/exhausted/overwhelmed, Sarge auto-pau
 
 Send anything — "what's today?", "how do I do a pike press-up?", "can I swap lunges?", "how's my week looking?". Sarge replies in character using your live programme, stats, streak and recent logs as context. Training is his specialty; off-topic chat gets a short answer and a nudge back to work. Requires an `OPENROUTER_API_KEY` (without it, commands still work but free chat is disabled).
 
+## Training website (`/plan`)
+
+The full interactive 8-week plan runs at **`/plan`** in the same web app — tickable sessions, a date-aware "Today" view, the phase calendar, rest timer, nutrition cheat-sheet, and a rep/weight logger with charts. Your ticks and logs are saved **server-side in Postgres**, so they're remembered across every device (no more per-browser localStorage). Anything you log there also feeds Sarge's coaching.
+
+The site is gated by an on-screen **PIN keypad** (no keyboard needed on mobile). Set `SITE_PIN` and `SITE_AUTH_TOKEN` in `.env` to enable it; leave either blank to disable. The PIN is enforced server-side (cookie + middleware), but a 4-digit PIN is a *light* gate — keep the site on your LAN or behind your own reverse proxy, and change `SITE_AUTH_TOKEN` for anything internet-facing.
+
 ## Quick start
 
 You need a Discord bot token and (optionally) an OpenRouter key. **See [SETUP.md](./SETUP.md) for the click-by-click.**
@@ -66,12 +72,14 @@ Next.js 15 (dashboard) · discord.js 14 (bot) · Postgres + Drizzle ORM · OpenR
 
 ```
 src/
-  db/        Drizzle schema + client
+  db/        Drizzle schema + client + plan-repo (ticks/logs store)
   core/      pure logic — schedule, escalation, overrides, proof, streak, concern, workoutlog (all unit-tested)
-  nag/       drill-sergeant persona, nag generation, and the coach (chat with plan+profile context)
+  nag/       drill-sergeant persona, nag generation, and the coach (chat with plan+profile+logs context)
   data/      the 8-week plan (committed) + profile loader (reads your private profile)
 worker/      the bot: config, repo, discord client/handlers, cron entrypoint
-app/         Next.js dashboard
+app/         Next.js — dashboard (/), training site (/plan), PIN keypad (/lock), API routes
+middleware.ts  PIN gate for all routes
+public/      plan-app.html (the training site, server-backed)
 data/        profile.example.json (committed) + profile.local.json (gitignored, your stats)
 test/        unit tests (run with `npm test`)
 drizzle/     generated SQL migrations

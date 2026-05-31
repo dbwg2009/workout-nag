@@ -14,6 +14,27 @@ export interface CoachLiveData {
   streak: number;
   recentDays: { date: string; status: string; sessionName: string | null }[];
   recentWorkouts: { date: string; rawText: string }[];
+  planLogs: {
+    date: string;
+    session: string | null;
+    pressups: string | null;
+    pullups: string | null;
+    squats: string | null;
+    plank: string | null;
+    weight: string | null;
+    notes: string | null;
+  }[];
+}
+
+function formatPlanLog(l: CoachLiveData['planLogs'][number]): string {
+  const bits: string[] = [];
+  if (l.pressups) bits.push(`press-ups ${l.pressups}`);
+  if (l.pullups) bits.push(`pull-ups ${l.pullups}`);
+  if (l.squats) bits.push(`squats ${l.squats}`);
+  if (l.plank) bits.push(`plank ${l.plank}`);
+  if (l.weight) bits.push(`weight ${l.weight}kg`);
+  if (l.notes) bits.push(`"${l.notes}"`);
+  return `${l.date}${l.session ? ' (' + l.session + ')' : ''}: ${bits.join(', ') || 'logged'}`;
 }
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
@@ -35,6 +56,10 @@ export function buildCoachSystemPrompt(personaName: string, live: CoachLiveData)
   const workouts = live.recentWorkouts
     .slice(0, 8)
     .map((w) => `${w.date}: ${w.rawText}`)
+    .join(' | ');
+  const sitelogs = live.planLogs
+    .slice(0, 8)
+    .map(formatPlanLog)
     .join(' | ');
 
   return [
@@ -58,6 +83,7 @@ export function buildCoachSystemPrompt(personaName: string, live: CoachLiveData)
     `Current streak: ${live.streak} day(s).`,
     recent ? `Recent days: ${recent}.` : 'No day history yet.',
     workouts ? `Recently logged: ${workouts}.` : 'No logged workouts yet.',
+    sitelogs ? `Numbers logged on the training site: ${sitelogs}.` : '',
     '',
     '=== COACHING RULES ===',
     '- He is a teenager mid-GCSEs. Never push him to train through illness, injury, or exam stress — tell him to rest, and that exams and recovery come first.',

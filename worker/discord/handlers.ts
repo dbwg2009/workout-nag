@@ -36,6 +36,7 @@ async function buildLive(cfg: Config, weekday: string, dateStr: string): Promise
   const week = weekNumber(dateStr, cfg.planStart);
   const recentDays = await repo.getRecentDays(14);
   const recentWorkouts = await repo.getRecentWorkouts(10);
+  const planLogs = await repo.getRecentPlanLogs(10);
   return {
     weekday,
     week,
@@ -44,7 +45,17 @@ async function buildLive(cfg: Config, weekday: string, dateStr: string): Promise
       recentDays.map((d) => ({ dateStr: d.date, isTrainingDay: d.isTrainingDay, status: d.status }))
     ),
     recentDays: recentDays.map((d) => ({ date: d.date, status: d.status, sessionName: d.sessionName })),
-    recentWorkouts: recentWorkouts.map((w) => ({ date: w.date, rawText: w.rawText }))
+    recentWorkouts: recentWorkouts.map((w) => ({ date: w.date, rawText: w.rawText })),
+    planLogs: planLogs.map((l) => ({
+      date: l.date,
+      session: l.session,
+      pressups: l.pressups,
+      pullups: l.pullups,
+      squats: l.squats,
+      plank: l.plank,
+      weight: l.weight,
+      notes: l.notes
+    }))
   };
 }
 

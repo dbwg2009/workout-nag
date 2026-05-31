@@ -101,6 +101,27 @@ export const settings = pgTable('settings', {
   personaName: text('persona_name').notNull().default('Sarge')
 });
 
+/** Key-value store for the training site's tick state (replaces browser localStorage). */
+export const planState = pgTable('plan_state', {
+  key: text('key').primaryKey(),
+  value: jsonb('value').notNull().default({}),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+});
+
+/** Structured session logs from the training site's "Log & Stats" tab. */
+export const planLogs = pgTable('plan_logs', {
+  id: serial('id').primaryKey(),
+  date: text('date').notNull(),
+  session: text('session'),
+  pressups: text('pressups'),
+  pullups: text('pullups'),
+  squats: text('squats'),
+  plank: text('plank'),
+  weight: text('weight'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+});
+
 export type Day = typeof days.$inferSelect;
 export type NewDay = typeof days.$inferInsert;
 export type Override = typeof overrides.$inferSelect;
@@ -108,3 +129,5 @@ export type Settings = typeof settings.$inferSelect;
 export type Proof = typeof proofs.$inferSelect;
 export type Workout = typeof workouts.$inferSelect;
 export type NewWorkout = typeof workouts.$inferInsert;
+export type PlanLog = typeof planLogs.$inferSelect;
+export type NewPlanLog = typeof planLogs.$inferInsert;

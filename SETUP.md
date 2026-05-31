@@ -62,6 +62,12 @@ Beyond proof + commands, just message him:
 
 Chat needs `OPENROUTER_API_KEY`; commands and logging work without it.
 
+## The training website
+
+Open **`http://localhost:3000/plan`** for the full interactive 8-week plan. Tick off exercises, log reps/weight, watch the charts — it's all saved on the server, so it follows you across devices, and Sarge can see what you log.
+
+The site is locked behind a PIN keypad. The default is **2911** (`SITE_PIN` in `.env`). Tap it on the on-screen keypad — no typing. To turn the lock off, blank out `SITE_PIN` or `SITE_AUTH_TOKEN`. For anything reachable from the internet, change `SITE_AUTH_TOKEN` to a long random string (`openssl rand -hex 32`) and keep the whole thing behind your own proxy — a 4-digit PIN is only a light gate.
+
 ## Tweaks (in `.env`)
 
 - `TRAINING_DAYS=tue,thu,fri,sat` — your training days (from the 8-week plan).

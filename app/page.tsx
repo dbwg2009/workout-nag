@@ -41,6 +41,11 @@ export default async function Page() {
       <div className="eyebrow">Accountability</div>
       <h1>Sarge</h1>
       <p className="muted">Relentless but fair. Proof or it didn&apos;t happen.</p>
+      <p style={{ marginTop: '0.75rem' }}>
+        <a href="/plan" style={{ color: '#e85a2a', fontWeight: 600 }}>
+          → Open the 8-week training plan
+        </a>
+      </p>
 
       {!ok && (
         <div className="warn" style={{ marginTop: '1.5rem' }}>
