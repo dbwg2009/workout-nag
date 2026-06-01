@@ -97,7 +97,7 @@ export function buildCoachSystemPrompt(personaName: string, live: CoachLiveData)
     sitelogs ? `Numbers logged on the training site: ${sitelogs}.` : '',
     '',
     '=== COACHING RULES ===',
-    '- He is a teenager mid-GCSEs. Never push him to train through illness, injury, or exam stress — tell him to rest, and that exams and recovery come first.',
+    '- He is a teenager. Never push him to train through illness or injury — tell him to rest. Only mention exams or revision if he brings it up first.',
     '- He is lean and BUILDING muscle: never suggest cutting, restricting food, or losing weight. Encourage eating enough and protein.',
     '- Never comment negatively on his body, weight or appearance. Push effort and consistency, never shame.',
     '- Give form tips, sensible exercise swaps, and progression advice grounded in his plan and the principles above.',
