@@ -34,13 +34,19 @@ async function streakNow(): Promise<number> {
 
 async function buildLive(cfg: Config, weekday: string, dateStr: string): Promise<CoachLiveData> {
   const week = weekNumber(dateStr, cfg.planStart);
-  const recentDays = await repo.getRecentDays(14);
-  const recentWorkouts = await repo.getRecentWorkouts(10);
-  const planLogs = await repo.getRecentPlanLogs(10);
+  const training = isTrainingDay(weekday, cfg.trainingDays);
+  const session = sessionFor(weekday, cfg.trainingDays);
+  const [day, recentDays, recentWorkouts, planLogs] = await Promise.all([
+    repo.ensureToday(dateStr, training, session),
+    repo.getRecentDays(14),
+    repo.getRecentWorkouts(10),
+    repo.getRecentPlanLogs(10)
+  ]);
   return {
     weekday,
     week,
-    isTrainingDay: isTrainingDay(weekday, cfg.trainingDays),
+    isTrainingDay: training,
+    todayStatus: day.status,
     streak: computeStreak(
       recentDays.map((d) => ({ dateStr: d.date, isTrainingDay: d.isTrainingDay, status: d.status }))
     ),
@@ -173,7 +179,7 @@ export async function handleIncoming(cfg: Config, message: Message): Promise<voi
   }
 
   // 6) Quick help
-  if (/^(help|commands?|what can you do)\b/i.test(raw.trim())) {
+  if (/^(\/help|help|commands?|what can you do)\b/i.test(raw.trim())) {
     await message.reply(helpMessage(cfg.personaName));
     return;
   }

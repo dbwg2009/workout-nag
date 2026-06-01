@@ -19,25 +19,26 @@ export type ParsedCommand =
   | { type: 'log'; text: string }
   | null;
 
-/** Parse a leading keyword command from a user message. */
+/** Parse a slash command from a user message (e.g. /rest, /sick 3, /log ...). */
 export function parseCommand(raw: string): ParsedCommand {
-  const text = raw.trim().toLowerCase();
-  if (!text) return null;
-  const first = text.split(/\s+/)[0].replace(/[^a-z]/g, '');
+  const text = raw.trim();
+  if (!text.startsWith('/')) return null;
+  const lower = text.toLowerCase();
+  const first = lower.split(/\s+/)[0].slice(1); // strip leading /
 
   if (first === 'rest') return { type: 'rest' };
   if (first === 'status') return { type: 'status' };
-  if (first === 'log') return { type: 'log', text: raw.replace(/^\s*log\s+/i, '').trim() };
+  if (first === 'log') return { type: 'log', text: text.replace(/^\/log\s*/i, '').trim() };
   if (first === 'sick' || first === 'ill') {
-    const m = text.match(/(\d+)/);
+    const m = lower.match(/(\d+)/);
     return { type: 'sick', days: m ? Math.max(1, Math.min(14, parseInt(m[1], 10))) : 2 };
   }
   if (first === 'exam' || first === 'exams') {
-    const m = text.match(/(\d{4}-\d{2}-\d{2})/);
+    const m = lower.match(/(\d{4}-\d{2}-\d{2})/);
     return { type: 'exam', until: m ? m[1] : null };
   }
   if (first === 'snooze') {
-    const m = text.match(/(\d+)/);
+    const m = lower.match(/(\d+)/);
     return { type: 'snooze', hours: m ? Math.max(1, Math.min(12, parseInt(m[1], 10))) : 2 };
   }
   return null;

@@ -120,6 +120,30 @@ export function helpMessage(personaName: string): string {
   return [
     `I'm ${personaName}. I nag you on training days until you send proof (a photo or fitness screenshot).`,
     'You can also just talk to me — ask about today\'s session, form, swaps, progression, or how your streak\'s going.',
-    'Commands: LOG [what you did] · REST · SICK [days] · EXAM [yyyy-mm-dd] · SNOOZE [hours] · STATUS.'
+    'Commands: /log [what you did] · /rest · /sick [days] · /exam [yyyy-mm-dd] · /snooze [hours] · /status'
+  ].join('\n');
+}
+
+export function microNudgeMorning(personaName: string): string {
+  return [
+    `Morning micro routine — under 5 mins, ${personaName} out:`,
+    '• Arm circles forward + back — 30 sec',
+    '• 10 × slow press-ups — ~1 min',
+    '• Plank hold — 30 sec',
+    '• 10 × bodyweight squats — ~1 min',
+    '• Chest doorframe stretch — 30 sec',
+    'These compound fast. Don\'t skip them.'
+  ].join('\n');
+}
+
+export function microNudgeEvening(personaName: string): string {
+  return [
+    `Evening micro routine — 1 hr before sleep, ${personaName} out:`,
+    '• Chest doorframe stretch — 30 sec',
+    '• Lat stretch (arm overhead, lean each side) — 30 sec ea',
+    '• Hollow body hold — 20 sec',
+    '• Hip flexor stretch (from lunge) — 30 sec ea',
+    '• Slow deep breathing — 4 in, hold 4, out 6 — 1 min',
+    'Improves sleep quality — your biggest recovery lever.'
   ].join('\n');
 }

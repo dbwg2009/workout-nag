@@ -8,22 +8,23 @@ import {
 } from '../src/core/overrides';
 
 test('parseCommand keywords', () => {
-  assert.deepEqual(parseCommand('rest'), { type: 'rest' });
-  assert.deepEqual(parseCommand('REST please'), { type: 'rest' });
-  assert.deepEqual(parseCommand('status'), { type: 'status' });
-  assert.deepEqual(parseCommand('sick'), { type: 'sick', days: 2 });
-  assert.deepEqual(parseCommand('sick 3'), { type: 'sick', days: 3 });
-  assert.deepEqual(parseCommand('ill for 5 days'), { type: 'sick', days: 5 });
-  assert.deepEqual(parseCommand('snooze'), { type: 'snooze', hours: 2 });
-  assert.deepEqual(parseCommand('snooze 4'), { type: 'snooze', hours: 4 });
-  assert.deepEqual(parseCommand('exam'), { type: 'exam', until: null });
-  assert.deepEqual(parseCommand('exam 2026-07-01'), { type: 'exam', until: '2026-07-01' });
+  assert.deepEqual(parseCommand('/rest'), { type: 'rest' });
+  assert.deepEqual(parseCommand('/REST please'), { type: 'rest' });
+  assert.deepEqual(parseCommand('/status'), { type: 'status' });
+  assert.deepEqual(parseCommand('/sick'), { type: 'sick', days: 2 });
+  assert.deepEqual(parseCommand('/sick 3'), { type: 'sick', days: 3 });
+  assert.deepEqual(parseCommand('/ill 5'), { type: 'sick', days: 5 });
+  assert.deepEqual(parseCommand('/snooze'), { type: 'snooze', hours: 2 });
+  assert.deepEqual(parseCommand('/snooze 4'), { type: 'snooze', hours: 4 });
+  assert.deepEqual(parseCommand('/exam'), { type: 'exam', until: null });
+  assert.deepEqual(parseCommand('/exam 2026-07-01'), { type: 'exam', until: '2026-07-01' });
   assert.equal(parseCommand('what is up'), null);
+  assert.equal(parseCommand('rest'), null);
   assert.equal(parseCommand(''), null);
 });
 
 test('sick days clamp', () => {
-  assert.deepEqual(parseCommand('sick 99'), { type: 'sick', days: 14 });
+  assert.deepEqual(parseCommand('/sick 99'), { type: 'sick', days: 14 });
 });
 
 test('isOverrideActive', () => {
