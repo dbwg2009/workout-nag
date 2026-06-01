@@ -34,7 +34,7 @@ export const PRINCIPLES: string[] = [
   'Progress weekly: add a rep per set, or an extra set, to something.',
   'You are lean and building muscle — eat enough (~120–130g protein/day). This is not a cut; do not restrict.',
   'Aim for 7.5h sleep; muscle is built during recovery, not in the session.',
-  'Rest, illness, and exams take priority. Missing a session never undoes progress. Friday is the first to drop in exam crunch.'
+  'Rest and illness take priority. Missing a session never undoes progress. Friday is the first to drop if life gets heavy.'
 ];
 
 export const PLAN: { startDate: string; trainingDays: string[]; restDays: string[]; phases: Phase[] } = {
