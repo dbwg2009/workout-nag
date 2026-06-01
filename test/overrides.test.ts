@@ -18,6 +18,7 @@ test('parseCommand keywords', () => {
   assert.deepEqual(parseCommand('/snooze 4'), { type: 'snooze', hours: 4 });
   assert.deepEqual(parseCommand('/exam'), { type: 'exam', until: null });
   assert.deepEqual(parseCommand('/exam 2026-07-01'), { type: 'exam', until: '2026-07-01' });
+  assert.deepEqual(parseCommand('/done'), { type: 'done' });
   assert.equal(parseCommand('what is up'), null);
   assert.equal(parseCommand('rest'), null);
   assert.equal(parseCommand(''), null);

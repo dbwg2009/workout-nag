@@ -120,20 +120,44 @@ export function helpMessage(personaName: string): string {
   return [
     `I'm ${personaName}. I nag you on training days until you send proof (a photo or fitness screenshot).`,
     'You can also just talk to me — ask about today\'s session, form, swaps, progression, or how your streak\'s going.',
-    'Commands: /log [what you did] · /rest · /sick [days] · /exam [yyyy-mm-dd] · /snooze [hours] · /status'
+    'Commands: /log [what you did] · /rest · /sick [days] · /exam [yyyy-mm-dd] · /snooze [hours] · /status · /done (rest days — marks micro routine done)'
   ].join('\n');
 }
+
+const MICRO_MORNING_ROUTINE = [
+  '• Arm circles forward + back — 30 sec',
+  '• 10 × slow press-ups — ~1 min',
+  '• Plank hold — 30 sec',
+  '• 10 × bodyweight squats — ~1 min',
+  '• Chest doorframe stretch — 30 sec'
+].join('\n');
 
 export function microNudgeMorning(personaName: string): string {
   return [
     `Morning micro routine — under 5 mins, ${personaName} out:`,
-    '• Arm circles forward + back — 30 sec',
-    '• 10 × slow press-ups — ~1 min',
-    '• Plank hold — 30 sec',
-    '• 10 × bodyweight squats — ~1 min',
-    '• Chest doorframe stretch — 30 sec',
-    'These compound fast. Don\'t skip them.'
+    MICRO_MORNING_ROUTINE,
+    'These compound fast. Don\'t skip them. Reply /done when finished.'
   ].join('\n');
+}
+
+const MICRO_NAG_MESSAGES = [
+  (name: string) =>
+    `Micro routine still not done. 5 minutes, that's all I'm asking.\n${MICRO_MORNING_ROUTINE}\nReply /done when finished.`,
+  (name: string) =>
+    `Still waiting on that micro routine. Arm circles to chest stretch — you've done it before, you can do it now.\n${MICRO_MORNING_ROUTINE}\nReply /done.`,
+  (name: string) =>
+    `${name} does NOT accept "later". Micro routine. Now.\n${MICRO_MORNING_ROUTINE}\n/done when it's done.`,
+  (name: string) =>
+    `Last call. That 5-minute routine is the difference between stiff and ready. Get it done.\n${MICRO_MORNING_ROUTINE}\n/done.`
+];
+
+export function microNagMessage(escalation: number, personaName: string): string {
+  const level = Math.max(0, Math.min(3, escalation));
+  return MICRO_NAG_MESSAGES[level](personaName);
+}
+
+export function microDoneAck(): string {
+  return 'Micro routine logged. Good habit. See you tonight for the evening stretch.';
 }
 
 export function microNudgeEvening(personaName: string): string {

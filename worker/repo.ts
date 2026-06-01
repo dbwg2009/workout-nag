@@ -124,6 +124,23 @@ export async function finalizePastDays(todayStr: string, tz: string): Promise<vo
   }
 }
 
+export async function markMicroDone(dayId: number): Promise<void> {
+  await db.update(days).set({ microDone: true }).where(eq(days.id, dayId));
+}
+
+export async function recordMicroNag(
+  dayId: number,
+  escalation: number,
+  message: string
+): Promise<void> {
+  await db.insert(nudges).values({ dayId, escalation, message, channel: 'discord-micro' });
+  const [row] = await db.select().from(days).where(eq(days.id, dayId));
+  await db
+    .update(days)
+    .set({ microNagCount: row.microNagCount + 1, microEscalation: escalation, microLastNagAt: new Date() })
+    .where(eq(days.id, dayId));
+}
+
 export async function addWorkout(
   dayId: number | null,
   date: string,
