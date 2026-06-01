@@ -11,6 +11,7 @@ export interface CoachLiveData {
   weekday: string;
   week: number | null;
   isTrainingDay: boolean;
+  todayStatus: string; // 'proven' | 'pending' | 'rest' | 'overridden' | 'missed'
   streak: number;
   recentDays: { date: string; status: string; sessionName: string | null }[];
   recentWorkouts: { date: string; rawText: string }[];
@@ -42,7 +43,7 @@ const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 // Tried in order after the configured model when the free pool is throttled.
 const FREE_FALLBACK_MODELS = [
   'meta-llama/llama-3.1-8b-instruct:free',
-  'google/gemma-2-9b-it:free',
+  'meta-llama/llama-3.2-3b-instruct:free',
   'mistralai/mistral-7b-instruct:free'
 ];
 
@@ -88,6 +89,9 @@ export function buildCoachSystemPrompt(personaName: string, live: CoachLiveData)
     '',
     '=== HIS PROGRESS ===',
     `Current streak: ${live.streak} day(s).`,
+    live.isTrainingDay
+      ? `Today's workout: ${live.todayStatus === 'proven' ? 'DONE — he has already submitted proof today. Do NOT tell him to work out.' : live.todayStatus === 'overridden' ? 'overridden (rest/sick/exam pause active).' : live.todayStatus === 'pending' ? 'still pending — he has not yet proved his workout.' : live.todayStatus}.`
+      : 'Today is a rest day.',
     recent ? `Recent days: ${recent}.` : 'No day history yet.',
     workouts ? `Recently logged: ${workouts}.` : 'No logged workouts yet.',
     sitelogs ? `Numbers logged on the training site: ${sitelogs}.` : '',

@@ -5,7 +5,7 @@ import { localNow, isWithinWake, wakeFraction, parseHm } from '../src/core/time'
 import { isTrainingDay, sessionFor, weekNumber } from '../src/core/schedule';
 import { decide } from '../src/core/escalation';
 import { computeStreak } from '../src/core/streak';
-import { generateNag } from '../src/nag/generate';
+import { generateNag, microNudgeMorning, microNudgeEvening } from '../src/nag/generate';
 import { sendText } from './discord/send';
 import { handleIncoming } from './discord/handlers';
 import * as repo from './repo';
@@ -95,6 +95,35 @@ async function main() {
       const ln = localNow(cfg.tz);
       void repo.finalizePastDays(ln.dateStr, cfg.tz);
       console.log('[finalize] ran nightly finalisation');
+    },
+    { timezone: cfg.tz }
+  );
+
+  // Morning micro nudge: rest days only, fires at WAKE_START.
+  const wakeStartMins = parseHm(cfg.wakeStart);
+  const wakeStartH = Math.floor(wakeStartMins / 60);
+  const wakeStartM = wakeStartMins % 60;
+  cron.schedule(
+    `${wakeStartM} ${wakeStartH} * * *`,
+    () => {
+      const ln = localNow(cfg.tz);
+      if (isTrainingDay(ln.weekday, cfg.trainingDays)) return; // session covers it
+      console.log('[micro] sending morning nudge');
+      void sendText(client, cfg, microNudgeMorning(cfg.personaName));
+    },
+    { timezone: cfg.tz }
+  );
+
+  // Evening micro nudge: every day, 1 hr before WAKE_END.
+  const wakeEndMins = parseHm(cfg.wakeEnd);
+  const eveningMins = wakeEndMins - 60;
+  const eveningH = Math.floor(eveningMins / 60);
+  const eveningM = eveningMins % 60;
+  cron.schedule(
+    `${eveningM} ${eveningH} * * *`,
+    () => {
+      console.log('[micro] sending evening nudge');
+      void sendText(client, cfg, microNudgeEvening(cfg.personaName));
     },
     { timezone: cfg.tz }
   );
