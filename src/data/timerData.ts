@@ -52,12 +52,12 @@ export const MICRO_EXERCISES: MicroExercise[] = [
   // Morning
   { name: 'Arm circles', aliases: ['arm circles', 'arm circle'], seconds: 30, session: 'morning' },
   { name: 'Slow press-ups', aliases: ['slow press-ups', 'slow press ups', 'micro press-ups', 'micro press ups'], seconds: 60, session: 'morning' },
-  { name: 'Plank hold (micro)', aliases: ['micro plank', 'morning plank'], seconds: 30, session: 'morning' },
-  { name: 'Bodyweight squats (micro)', aliases: ['micro squats', 'morning squats'], seconds: 60, session: 'morning' },
+  { name: 'Plank hold (micro)', aliases: ['plank', 'micro plank', 'morning plank'], seconds: 30, session: 'morning' },
+  { name: 'Bodyweight squats (micro)', aliases: ['squats', 'squat', 'micro squats', 'morning squats'], seconds: 60, session: 'morning' },
   { name: 'Chest doorframe stretch', aliases: ['chest stretch', 'doorframe stretch', 'chest doorframe', 'chest door'], seconds: 30, session: 'both' },
   // Evening
   { name: 'Lat stretch', aliases: ['lat stretch', 'lat'], seconds: 30, session: 'evening' },
-  { name: 'Hollow body hold (micro)', aliases: ['evening hollow', 'micro hollow', 'hollow micro'], seconds: 20, session: 'evening' },
+  { name: 'Hollow body hold (micro)', aliases: ['hollow', 'hollow body', 'evening hollow', 'micro hollow', 'hollow micro'], seconds: 20, session: 'evening' },
   { name: 'Hip flexor stretch', aliases: ['hip flexor', 'hip stretch', 'lunge stretch', 'hip'], seconds: 30, session: 'evening' },
   { name: 'Breathing', aliases: ['breathing', 'deep breathing', 'slow breathing', 'breath'], seconds: 60, session: 'evening' }
 ];
