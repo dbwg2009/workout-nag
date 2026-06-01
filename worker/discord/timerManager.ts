@@ -1,4 +1,4 @@
-import type { Client, TextBasedChannel } from 'discord.js';
+import type { Client, SendableChannels } from 'discord.js';
 import { shouldPush, pushSeconds } from '../../src/core/timer';
 
 interface ActiveTimer {
@@ -15,10 +15,10 @@ export interface PushPending {
 const activeTimers = new Map<string, ActiveTimer>();
 export const pushPending = new Map<string, PushPending>();
 
-async function getChannel(client: Client, channelId: string): Promise<TextBasedChannel | null> {
+async function getChannel(client: Client, channelId: string): Promise<SendableChannels | null> {
   try {
     const ch = await client.channels.fetch(channelId);
-    return ch && 'send' in ch ? (ch as TextBasedChannel) : null;
+    return ch && ch.isSendable() ? ch : null;
   } catch {
     return null;
   }

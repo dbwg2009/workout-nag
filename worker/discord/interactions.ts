@@ -1,4 +1,5 @@
 import { ChatInputCommandInteraction } from 'discord.js';
+import { DateTime } from 'luxon';
 import type { Config } from '../config';
 import { localNow, formatDateTime } from '../../src/core/time';
 import { isTrainingDay, sessionFor, weekNumber } from '../../src/core/schedule';
