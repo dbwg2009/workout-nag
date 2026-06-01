@@ -156,8 +156,10 @@ export function microNagMessage(escalation: number, personaName: string): string
   return MICRO_NAG_MESSAGES[level](personaName);
 }
 
-export function microDoneAck(): string {
-  return 'Micro routine logged. Good habit. See you tonight for the evening stretch.';
+export function microDoneAck(session: 'morning' | 'evening'): string {
+  return session === 'morning'
+    ? 'Morning routine logged. Good habit. See you tonight for the evening stretch.'
+    : 'Evening stretch logged. Both sessions done today. Rest up.';
 }
 
 export function microNudgeEvening(personaName: string): string {

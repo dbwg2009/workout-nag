@@ -37,6 +37,7 @@ export const days = pgTable(
     escalation: integer('escalation').notNull().default(0),
     lastNagAt: timestamp('last_nag_at', { withTimezone: true }),
     microDone: boolean('micro_done').notNull().default(false),
+    microEveningDone: boolean('micro_evening_done').notNull().default(false),
     microNagCount: integer('micro_nag_count').notNull().default(0),
     microEscalation: integer('micro_escalation').notNull().default(0),
     microLastNagAt: timestamp('micro_last_nag_at', { withTimezone: true }),

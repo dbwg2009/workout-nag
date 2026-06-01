@@ -128,6 +128,10 @@ export async function markMicroDone(dayId: number): Promise<void> {
   await db.update(days).set({ microDone: true }).where(eq(days.id, dayId));
 }
 
+export async function markMicroEveningDone(dayId: number): Promise<void> {
+  await db.update(days).set({ microEveningDone: true }).where(eq(days.id, dayId));
+}
+
 export async function recordMicroNag(
   dayId: number,
   escalation: number,
