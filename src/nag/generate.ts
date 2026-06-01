@@ -13,6 +13,12 @@ export interface NagContext {
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
+const FREE_FALLBACK_MODELS = [
+  'meta-llama/llama-3.1-8b-instruct:free',
+  'google/gemma-2-9b-it:free',
+  'mistralai/mistral-7b-instruct:free'
+];
+
 function staticNag(ctx: NagContext): string {
   const level = Math.max(0, Math.min(3, ctx.escalation));
   const bank = STATIC_NAGS[level];
@@ -20,7 +26,7 @@ function staticNag(ctx: NagContext): string {
   return fillTemplate(tpl, ctx);
 }
 
-/** Generate a nag via OpenRouter, falling back to static lines on any problem. */
+/** Generate a nag via OpenRouter, falling back across free models then to static. */
 export async function generateNag(ctx: NagContext): Promise<string> {
   if (!ctx.apiKey) return staticNag(ctx);
 
@@ -33,38 +39,52 @@ export async function generateNag(ctx: NagContext): Promise<string> {
     ` Minutes left in his day: ${ctx.minutesLeft}.${weekBit}` +
     ` Write one short nag.`;
 
-  try {
-    const res = await fetch(OPENROUTER_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${ctx.apiKey}`,
-        'Content-Type': 'application/json',
-        'X-Title': 'workout-nag'
-      },
-      body: JSON.stringify({
-        model: ctx.model,
-        max_tokens: 120,
-        temperature: 0.9,
-        messages: [
-          { role: 'system', content: system },
-          { role: 'user', content: user }
-        ]
-      })
-    });
-    if (!res.ok) {
+  const tried = new Set<string>();
+  const chain = [ctx.model, ...FREE_FALLBACK_MODELS].filter((m) => {
+    if (!m || tried.has(m)) return false;
+    tried.add(m);
+    return true;
+  });
+
+  for (const m of chain) {
+    try {
+      const res = await fetch(OPENROUTER_URL, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${ctx.apiKey}`,
+          'Content-Type': 'application/json',
+          'X-Title': 'workout-nag'
+        },
+        body: JSON.stringify({
+          model: m,
+          max_tokens: 120,
+          temperature: 0.9,
+          messages: [
+            { role: 'system', content: system },
+            { role: 'user', content: user }
+          ]
+        })
+      });
+
+      if (res.ok) {
+        const data: any = await res.json();
+        const text: string | undefined = data?.choices?.[0]?.message?.content;
+        const clean = (text ?? '').trim();
+        if (clean && clean.length <= 400) return clean;
+        console.error('[nag] OpenRouter OK but bad response from', m, '— trying next');
+        continue;
+      }
+
       const body = await res.text().catch(() => '');
-      console.error(`[nag] OpenRouter ${res.status}: ${body.slice(0, 300)} — using static line`);
-      return staticNag(ctx);
+      console.error(`[nag] OpenRouter ${res.status} from ${m}: ${body.slice(0, 300)}`);
+      if (res.status === 401 || res.status === 402) break; // auth/billing — no point trying more
+      // 429 or other: try next model
+    } catch (err) {
+      console.error('[nag] OpenRouter fetch threw for', m, err);
     }
-    const data: any = await res.json();
-    const text: string | undefined = data?.choices?.[0]?.message?.content;
-    const clean = (text ?? '').trim();
-    if (!clean || clean.length > 400) return staticNag(ctx);
-    return clean;
-  } catch (err) {
-    console.error('[nag] OpenRouter fetch threw — using static line:', err);
-    return staticNag(ctx);
   }
+
+  return staticNag(ctx);
 }
 
 export function congratsMessage(streak: number): string {
