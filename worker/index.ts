@@ -121,7 +121,7 @@ async function tick(client: Client): Promise<void> {
       await repo.recordMicroNag(day.id, microDecision.escalation ?? 0, msg);
       console.log(`${tag} micro nag (L${microDecision.escalation})`);
     } else if (decision.action !== 'nag') {
-      console.log(`${tag} silent — ${decision.reason}`);
+      console.log(`${tag} silent — ${decision.reason} | micro: ${microDecision.reason}`);
     }
   } catch (err) {
     console.error('[tick] error:', err);
