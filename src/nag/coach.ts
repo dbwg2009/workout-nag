@@ -42,7 +42,7 @@ const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 // Tried in order after the configured model when the free pool is throttled.
 const FREE_FALLBACK_MODELS = [
   'meta-llama/llama-3.1-8b-instruct:free',
-  'google/gemma-2-9b-it:free',
+  'meta-llama/llama-3.2-3b-instruct:free',
   'mistralai/mistral-7b-instruct:free'
 ];
 

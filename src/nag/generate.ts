@@ -15,7 +15,7 @@ const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 const FREE_FALLBACK_MODELS = [
   'meta-llama/llama-3.1-8b-instruct:free',
-  'google/gemma-2-9b-it:free',
+  'meta-llama/llama-3.2-3b-instruct:free',
   'mistralai/mistral-7b-instruct:free'
 ];
 
@@ -53,6 +53,7 @@ export async function generateNag(ctx: NagContext): Promise<string> {
         headers: {
           Authorization: `Bearer ${ctx.apiKey}`,
           'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://github.com/dbwg2009/workout-nag',
           'X-Title': 'workout-nag'
         },
         body: JSON.stringify({
@@ -77,7 +78,10 @@ export async function generateNag(ctx: NagContext): Promise<string> {
 
       const body = await res.text().catch(() => '');
       console.error(`[nag] OpenRouter ${res.status} from ${m}: ${body.slice(0, 300)}`);
-      if (res.status === 401 || res.status === 402) break; // auth/billing — no point trying more
+      if (res.status === 401)
+        return "My API key's being rejected (401). Double-check OPENROUTER_API_KEY in .env, then restart me.";
+      if (res.status === 402)
+        return 'OpenRouter says payment required (402) — switch OPENROUTER_MODEL or add a little balance.';
       // 429 or other: try next model
     } catch (err) {
       console.error('[nag] OpenRouter fetch threw for', m, err);
