@@ -9,6 +9,8 @@ import { computeStreak } from '../../src/core/streak';
 import { parseWorkout } from '../../src/core/workoutlog';
 import { overrideAck, concernReply, helpMessage, microDoneAck } from '../../src/nag/generate';
 import { generateChatReply, type CoachLiveData } from '../../src/nag/coach';
+import { lookupTimer } from '../../src/core/timer';
+import { startTimer } from './timerManager';
 import * as repo from '../repo';
 
 async function streakNow(): Promise<number> {
@@ -18,7 +20,13 @@ async function streakNow(): Promise<number> {
   );
 }
 
-async function buildLive(cfg: Config, weekday: string, dateStr: string): Promise<CoachLiveData> {
+function buildDateTime(cfg: Config, now: Date, week: number | null): string {
+  const dt = DateTime.fromJSDate(now).setZone(cfg.tz);
+  const weekPart = week ? `Week ${week} of 8` : 'plan not started';
+  return `${dt.toFormat('cccc d MMM yyyy, HH:mm z')} — ${weekPart}`;
+}
+
+async function buildLive(cfg: Config, weekday: string, dateStr: string, now: Date = new Date()): Promise<CoachLiveData> {
   const week = weekNumber(dateStr, cfg.planStart);
   const training = isTrainingDay(weekday, cfg.trainingDays);
   const session = sessionFor(weekday, cfg.trainingDays);
@@ -33,6 +41,7 @@ async function buildLive(cfg: Config, weekday: string, dateStr: string): Promise
     week,
     isTrainingDay: training,
     todayStatus: day.status,
+    currentDateTime: buildDateTime(cfg, now, week),
     streak: computeStreak(
       recentDays.map((d) => ({ dateStr: d.date, isTrainingDay: d.isTrainingDay, status: d.status }))
     ),
@@ -152,6 +161,37 @@ export async function handleInteraction(cfg: Config, interaction: ChatInputComma
       return;
     }
 
+    // /timer — countdown timer for a set or rest period
+    if (cmd === 'timer') {
+      const exerciseInput = interaction.options.getString('exercise', true);
+      const overrideSecs = interaction.options.getInteger('seconds') ?? undefined;
+      const week = weekNumber(ln.dateStr, cfg.planStart);
+      const result = lookupTimer(exerciseInput, ln.weekday, week, overrideSecs);
+      if (!result.found) {
+        await interaction.reply(
+          `I don't know "${exerciseInput}" — it's not in today's session or the micro routine. Tell me how many seconds and I'll run it: \`/timer ${exerciseInput} 30\``
+        );
+        return;
+      }
+      const sourceNote =
+        result.source === 'upcoming'
+          ? ` (from your next ${result.upcomingDay} session)`
+          : result.source === 'micro'
+          ? ' (micro routine)'
+          : '';
+      await interaction.reply(`Starting timer: **${result.name}** — ${result.seconds}s${sourceNote}.`);
+      await startTimer({
+        client: interaction.client,
+        channelId: interaction.channelId,
+        userId: interaction.user.id,
+        exerciseName: result.name,
+        seconds: result.seconds,
+        pushEnabled: cfg.timerPushEnabled,
+        maxPushSeconds: cfg.timerMaxPushSeconds
+      });
+      return;
+    }
+
     // /chat — free-text message to Sarge as coach
     if (cmd === 'chat') {
       const text = interaction.options.getString('message', true);
@@ -164,7 +204,7 @@ export async function handleInteraction(cfg: Config, interaction: ChatInputComma
         return;
       }
       await interaction.deferReply();
-      const live = await buildLive(cfg, ln.weekday, ln.dateStr);
+      const live = await buildLive(cfg, ln.weekday, ln.dateStr, now);
       const reply = await generateChatReply({
         personaName: cfg.personaName,
         model: cfg.model,

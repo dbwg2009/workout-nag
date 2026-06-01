@@ -14,6 +14,8 @@ export interface Config {
   trainingDays: string[];
   planStart: string;
   personaName: string;
+  timerPushEnabled: boolean;
+  timerMaxPushSeconds: number;
 }
 
 function required(name: string): string {
@@ -39,6 +41,8 @@ export function loadConfig(): Config {
       .map((s) => s.trim().toLowerCase())
       .filter(Boolean),
     planStart: process.env.PLAN_START?.trim() || '2026-06-02',
-    personaName: process.env.PERSONA_NAME?.trim() || 'Sarge'
+    personaName: process.env.PERSONA_NAME?.trim() || 'Sarge',
+    timerPushEnabled: process.env.TIMER_PUSH_ENABLED?.trim().toLowerCase() !== 'false',
+    timerMaxPushSeconds: parseInt(process.env.TIMER_MAX_PUSH_SECONDS || '15', 10)
   };
 }
