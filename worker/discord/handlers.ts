@@ -65,17 +65,31 @@ async function buildLive(cfg: Config, weekday: string, dateStr: string): Promise
   };
 }
 
-async function fetchHistory(message: Message, limit = 12): Promise<ChatMessage[]> {
+// Only include messages that are part of an actual back-and-forth conversation —
+// i.e. bot messages that are direct replies to the user (not automated nags).
+async function fetchHistory(message: Message, limit = 20): Promise<ChatMessage[]> {
   try {
     const fetched = await message.channel.messages.fetch({ limit, before: message.id });
     const botId = message.client.user?.id;
+    const userId = message.author.id;
     const arr = [...fetched.values()].reverse(); // oldest -> newest
+
+    // Build a set of message IDs that are user messages (so we can check if a bot message replied to one)
+    const userMsgIds = new Set(arr.filter((m) => m.author.id === userId).map((m) => m.id));
+
     const out: ChatMessage[] = [];
     for (const m of arr) {
       const content = (m.content ?? '').trim();
       if (!content) continue;
-      if (m.author.id === botId) out.push({ role: 'assistant', content });
-      else if (m.author.id === message.author.id) out.push({ role: 'user', content });
+      if (m.author.id === userId) {
+        out.push({ role: 'user', content });
+      } else if (m.author.id === botId) {
+        // Only include bot messages that were direct replies to the user (not automated nags)
+        const refId = m.reference?.messageId;
+        if (refId && userMsgIds.has(refId)) {
+          out.push({ role: 'assistant', content });
+        }
+      }
     }
     return out.slice(-8);
   } catch {
