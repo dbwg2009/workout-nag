@@ -70,10 +70,14 @@ export function buildCoachSystemPrompt(personaName: string, live: CoachLiveData)
     .map(formatPlanLog)
     .join(' | ');
 
+  const workoutPending = live.isTrainingDay && live.todayStatus === 'pending';
+
   return [
     buildSystemPrompt(personaName),
     '',
-    'In this conversation mode you are his coach, NOT just a nag. Respond to what he actually says. If he is chatting, chat back briefly. If he is asking about training, coach him. Only push him to train if today is a training day AND the workout is still pending — otherwise just talk normally. Keep replies to a few sentences unless he asks for detail.',
+    workoutPending
+      ? 'In this conversation mode you are his coach. His workout is still pending today — you can briefly remind him, but respond to what he actually says first. Keep replies to a few sentences unless he asks for detail.'
+      : 'In this conversation mode you are his coach. IMPORTANT: his workout is either done or today is a rest day — do NOT mention working out, the session, or the warm-up AT ALL unless he brings it up first. Just talk normally. Keep replies to a few sentences unless he asks for detail.',
     '',
     '=== WHO HE IS ===',
     profileSummary(profile),
@@ -81,16 +85,16 @@ export function buildCoachSystemPrompt(personaName: string, live: CoachLiveData)
     '=== HIS PROGRAMME ===',
     `Currently Phase ${phase.phase} (${phase.name}, weeks ${phase.weeks}): ${phase.focus}`,
     `Week of plan: ${live.week ?? 'not started yet'}.`,
-    sessionBlock(live.weekday, live.week),
-    `Warm-up: ${WARMUP.join('; ')}.`,
+    workoutPending ? sessionBlock(live.weekday, live.week) : (live.isTrainingDay ? `Today's session is scheduled but already completed.` : 'Today is a rest day.'),
+    workoutPending ? `Warm-up: ${WARMUP.join('; ')}.` : '',
     '',
-    '=== PRINCIPLES (follow these in any advice) ===',
+    '=== PRINCIPLES (follow these in any advice — only share if he asks) ===',
     PRINCIPLES.map((p) => `- ${p}`).join('\n'),
     '',
     '=== HIS PROGRESS ===',
     `Current streak: ${live.streak} day(s).`,
     live.isTrainingDay
-      ? `Today's workout: ${live.todayStatus === 'proven' ? 'DONE — he has already submitted proof today. Do NOT tell him to work out.' : live.todayStatus === 'overridden' ? 'overridden (rest/sick/exam pause active).' : live.todayStatus === 'pending' ? 'still pending — he has not yet proved his workout.' : live.todayStatus}.`
+      ? `Today's workout: ${live.todayStatus === 'proven' ? 'DONE.' : live.todayStatus === 'overridden' ? 'paused (rest/sick/exam).' : live.todayStatus === 'pending' ? 'still pending.' : live.todayStatus}.`
       : 'Today is a rest day.',
     recent ? `Recent days: ${recent}.` : 'No day history yet.',
     workouts ? `Recently logged: ${workouts}.` : 'No logged workouts yet.',
@@ -100,9 +104,9 @@ export function buildCoachSystemPrompt(personaName: string, live: CoachLiveData)
     '- He is a teenager. Never push him to train through illness or injury — tell him to rest. Only mention exams or revision if he brings it up first.',
     '- He is lean and BUILDING muscle: never suggest cutting, restricting food, or losing weight. Encourage eating enough and protein.',
     '- Never comment negatively on his body, weight or appearance. Push effort and consistency, never shame.',
-    '- Give form tips, sensible exercise swaps, and progression advice grounded in his plan and the principles above.',
+    '- Only give training advice (form tips, session details, progression) if he asks for it.',
     '- If you are not sure about something, say so honestly rather than inventing it.'
-  ].join('\n');
+  ].filter(Boolean).join('\n');
 }
 
 export async function generateChatReply(opts: {
