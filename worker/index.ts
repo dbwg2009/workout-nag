@@ -5,7 +5,7 @@ import { localNow, isWithinWake, wakeFraction, parseHm } from '../src/core/time'
 import { isTrainingDay, sessionFor, weekNumber } from '../src/core/schedule';
 import { decide, decideMicro } from '../src/core/escalation';
 import { computeStreak } from '../src/core/streak';
-import { generateNag, microNagMessage, microNudgeEvening } from '../src/nag/generate';
+import { generateNag, microNagMessage, microNudgeMorning, microNudgeEvening } from '../src/nag/generate';
 import { sendText } from './discord/send';
 import { handleIncoming } from './discord/handlers';
 import * as repo from './repo';
@@ -74,7 +74,7 @@ async function tick(client: Client): Promise<void> {
     if (microDecision.action === 'nag') {
       const isFirstNag = day.microNagCount === 0;
       const msg = isFirstNag
-        ? `Morning micro routine — under 5 mins:\n• Arm circles forward + back — 30 sec\n• 10 × slow press-ups — ~1 min\n• Plank hold — 30 sec\n• 10 × bodyweight squats — ~1 min\n• Chest doorframe stretch — 30 sec\nReply /done when finished.`
+        ? microNudgeMorning(cfg.personaName)
         : microNagMessage(microDecision.escalation ?? 0, cfg.personaName);
       await sendText(client, cfg, msg);
       await repo.recordMicroNag(day.id, microDecision.escalation ?? 0, msg);

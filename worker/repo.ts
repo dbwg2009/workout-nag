@@ -1,4 +1,4 @@
-import { and, eq, lt, desc } from 'drizzle-orm';
+import { and, eq, lt, desc, sql } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import { getDb } from '../src/db/client';
 import { days, overrides, nudges, proofs, settings, workouts, planLogs, type Day } from '../src/db/schema';
@@ -134,10 +134,13 @@ export async function recordMicroNag(
   message: string
 ): Promise<void> {
   await db.insert(nudges).values({ dayId, escalation, message, channel: 'discord-micro' });
-  const [row] = await db.select().from(days).where(eq(days.id, dayId));
   await db
     .update(days)
-    .set({ microNagCount: row.microNagCount + 1, microEscalation: escalation, microLastNagAt: new Date() })
+    .set({
+      microNagCount: sql`${days.microNagCount} + 1`,
+      microEscalation: escalation,
+      microLastNagAt: new Date()
+    })
     .where(eq(days.id, dayId));
 }
 
