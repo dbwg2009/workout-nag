@@ -1,7 +1,7 @@
 import { Message } from 'discord.js';
 import { DateTime } from 'luxon';
 import type { Config } from '../config';
-import { localNow } from '../../src/core/time';
+import { localNow, formatDateTime } from '../../src/core/time';
 import { isTrainingDay, sessionFor, weekNumber } from '../../src/core/schedule';
 import { verifyProof } from '../../src/core/proof';
 import { parseCommand, overrideWindow, type WindowCommand } from '../../src/core/overrides';
@@ -33,16 +33,6 @@ async function streakNow(): Promise<number> {
   );
 }
 
-function buildDateTime(cfg: Config, now: Date, week: number | null): string {
-  const dt = DateTime.fromJSDate(now).setZone(cfg.tz);
-  const dayName = dt.toFormat('cccc');
-  const datePart = dt.toFormat('d MMM yyyy');
-  const timePart = dt.toFormat('HH:mm');
-  const zonePart = dt.toFormat('z');
-  const weekPart = week ? `Week ${week} of 8` : 'plan not started';
-  return `${dayName} ${datePart}, ${timePart} ${zonePart} — ${weekPart}`;
-}
-
 async function buildLive(cfg: Config, weekday: string, dateStr: string, now: Date = new Date()): Promise<CoachLiveData> {
   const week = weekNumber(dateStr, cfg.planStart);
   const training = isTrainingDay(weekday, cfg.trainingDays);
@@ -58,7 +48,7 @@ async function buildLive(cfg: Config, weekday: string, dateStr: string, now: Dat
     week,
     isTrainingDay: training,
     todayStatus: day.status,
-    currentDateTime: buildDateTime(cfg, now, week),
+    currentDateTime: formatDateTime(cfg.tz, now, week),
     streak: computeStreak(
       recentDays.map((d) => ({ dateStr: d.date, isTrainingDay: d.isTrainingDay, status: d.status }))
     ),

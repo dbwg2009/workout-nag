@@ -27,7 +27,7 @@ function clampSeconds(s: number): number {
 function matchPlanExercise(input: string): TimedPlanExercise | null {
   const lower = input.toLowerCase();
   for (const ex of TIMED_PLAN_EXERCISES) {
-    if (ex.aliases.some((a) => lower === a || lower.includes(a) || a.includes(lower))) return ex;
+    if (ex.aliases.some((a) => lower === a || lower.includes(a))) return ex;
   }
   return null;
 }
@@ -35,7 +35,7 @@ function matchPlanExercise(input: string): TimedPlanExercise | null {
 function matchMicroExercise(input: string): MicroExercise | null {
   const lower = input.toLowerCase();
   for (const ex of MICRO_EXERCISES) {
-    if (ex.aliases.some((a) => lower === a || lower.includes(a) || a.includes(lower))) return ex;
+    if (ex.aliases.some((a) => lower === a || lower.includes(a))) return ex;
   }
   return null;
 }

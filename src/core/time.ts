@@ -43,3 +43,10 @@ export function isWithinWake(minutesNow: number, wakeStart: string, wakeEnd: str
   const e = parseHm(wakeEnd);
   return minutesNow >= s && minutesNow < e;
 }
+
+/** Format a timestamp as "Monday 2 Jun 2026, 19:32 BST — Week 3 of 8" */
+export function formatDateTime(tz: string, now: Date, week: number | null): string {
+  const dt = DateTime.fromJSDate(now).setZone(tz).setLocale('en-GB');
+  const weekPart = week ? `Week ${week} of 8` : 'plan not started';
+  return `${dt.toFormat('cccc d MMM yyyy, HH:mm ZZZZ')} — ${weekPart}`;
+}
