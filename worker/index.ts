@@ -1,4 +1,12 @@
-import { Client, GatewayIntentBits, Events, Partials } from 'discord.js';
+import {
+  Client,
+  GatewayIntentBits,
+  Events,
+  Partials,
+  ApplicationCommandOptionType,
+  ChatInputCommandInteraction,
+  type RESTPostAPIChatInputApplicationCommandsJSONBody
+} from 'discord.js';
 import cron from 'node-cron';
 import { loadConfig } from './config';
 import { localNow, isWithinWake, wakeFraction, parseHm } from '../src/core/time';
@@ -8,7 +16,40 @@ import { computeStreak } from '../src/core/streak';
 import { generateNag, microNagMessage, microNudgeMorning, microNudgeEvening } from '../src/nag/generate';
 import { sendText } from './discord/send';
 import { handleIncoming } from './discord/handlers';
+import { handleInteraction } from './discord/interactions';
 import * as repo from './repo';
+
+const SLASH_COMMANDS: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [
+  { name: 'help', description: 'Show available commands' },
+  { name: 'status', description: 'Show today\'s workout status and current streak' },
+  { name: 'rest', description: 'Mark today as a rest day — Sarge backs off' },
+  {
+    name: 'sick',
+    description: 'Pause nagging while you\'re ill',
+    options: [{ name: 'days', description: 'Number of days (1–14, default 2)', type: ApplicationCommandOptionType.Integer, required: false, min_value: 1, max_value: 14 }]
+  },
+  {
+    name: 'exam',
+    description: 'Pause nagging for exam period',
+    options: [{ name: 'until', description: 'Date to resume (YYYY-MM-DD)', type: ApplicationCommandOptionType.String, required: false }]
+  },
+  {
+    name: 'snooze',
+    description: 'Snooze nags for a few hours',
+    options: [{ name: 'hours', description: 'Hours to snooze (1–12, default 2)', type: ApplicationCommandOptionType.Integer, required: false, min_value: 1, max_value: 12 }]
+  },
+  {
+    name: 'log',
+    description: 'Log what you did in today\'s workout',
+    options: [{ name: 'text', description: 'e.g. "4×10 press-ups, felt strong"', type: ApplicationCommandOptionType.String, required: true }]
+  },
+  { name: 'done', description: 'Mark the morning micro routine as done (rest days)' },
+  {
+    name: 'chat',
+    description: 'Ask Sarge anything — training advice, form tips, or just chat',
+    options: [{ name: 'message', description: 'Your message', type: ApplicationCommandOptionType.String, required: true }]
+  }
+];
 
 const cfg = loadConfig();
 
@@ -102,11 +143,21 @@ async function main() {
 
   client.once(Events.ClientReady, (c) => {
     console.log(`[ready] ${cfg.personaName} online as ${c.user.tag}. Training days: ${cfg.trainingDays.join(', ')}. TZ: ${cfg.tz}.`);
+    // Register slash commands globally (works in DMs + servers).
+    // Takes up to 1 hour to propagate on first deploy; instant on restart thereafter.
+    void c.application.commands.set(SLASH_COMMANDS)
+      .then(() => console.log(`[commands] registered ${SLASH_COMMANDS.length} slash commands`))
+      .catch((err) => console.error('[commands] registration failed:', err));
     setTimeout(() => void tick(client), 5000);
   });
 
   client.on(Events.MessageCreate, (message) => {
     void handleIncoming(cfg, message);
+  });
+
+  client.on(Events.InteractionCreate, (interaction) => {
+    if (!interaction.isChatInputCommand()) return;
+    void handleInteraction(cfg, interaction as ChatInputCommandInteraction);
   });
 
   // The nag loop: every 15 minutes, in the user's timezone.
