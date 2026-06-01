@@ -3,9 +3,9 @@ import cron from 'node-cron';
 import { loadConfig } from './config';
 import { localNow, isWithinWake, wakeFraction, parseHm } from '../src/core/time';
 import { isTrainingDay, sessionFor, weekNumber } from '../src/core/schedule';
-import { decide } from '../src/core/escalation';
+import { decide, decideMicro } from '../src/core/escalation';
 import { computeStreak } from '../src/core/streak';
-import { generateNag, microNudgeMorning, microNudgeEvening } from '../src/nag/generate';
+import { generateNag, microNagMessage, microNudgeMorning, microNudgeEvening } from '../src/nag/generate';
 import { sendText } from './discord/send';
 import { handleIncoming } from './discord/handlers';
 import * as repo from './repo';
@@ -27,37 +27,61 @@ async function tick(client: Client): Promise<void> {
     const session = sessionFor(ln.weekday, cfg.trainingDays);
     const day = await repo.ensureToday(ln.dateStr, training, session);
     const overrideActive = (await repo.getActiveOverrides(now)).length > 0;
+    const withinWake = isWithinWake(ln.minutesSinceMidnight, cfg.wakeStart, cfg.wakeEnd);
+    const fraction = wakeFraction(ln.minutesSinceMidnight, cfg.wakeStart, cfg.wakeEnd);
+    const sharedSettings = { wakeStart: cfg.wakeStart, wakeEnd: cfg.wakeEnd, maxNagsPerDay: cfg.maxNagsPerDay };
+    const tag = `[tick ${ln.dateStr} ${ln.hour}:${String(ln.minute).padStart(2, '0')}]`;
 
+    // Training day nag
     const decision = decide({
       isTrainingDay: training,
-      withinWake: isWithinWake(ln.minutesSinceMidnight, cfg.wakeStart, cfg.wakeEnd),
-      fraction: wakeFraction(ln.minutesSinceMidnight, cfg.wakeStart, cfg.wakeEnd),
+      withinWake,
+      fraction,
       overrideActive,
       day: { status: day.status, nagCount: day.nagCount, lastNagAt: day.lastNagAt },
-      settings: { wakeStart: cfg.wakeStart, wakeEnd: cfg.wakeEnd, maxNagsPerDay: cfg.maxNagsPerDay },
+      settings: sharedSettings,
       now
     });
 
-    if (decision.action !== 'nag') {
-      console.log(`[tick ${ln.dateStr} ${ln.hour}:${String(ln.minute).padStart(2, '0')}] silent — ${decision.reason}`);
-      return;
+    if (decision.action === 'nag') {
+      const minutesLeft = Math.max(0, parseHm(cfg.wakeEnd) - ln.minutesSinceMidnight);
+      const message = await generateNag({
+        escalation: decision.escalation ?? 0,
+        streak: await currentStreak(),
+        sessionName: session ?? 'your workout',
+        weekNumber: weekNumber(ln.dateStr, cfg.planStart),
+        minutesLeft,
+        model: cfg.model,
+        apiKey: cfg.openRouterKey,
+        personaName: cfg.personaName
+      });
+      await sendText(client, cfg, message);
+      await repo.recordNag(day.id, decision.escalation ?? 0, message);
+      console.log(`${tag} nagged (L${decision.escalation}): ${message.slice(0, 80)}`);
     }
 
-    const minutesLeft = Math.max(0, parseHm(cfg.wakeEnd) - ln.minutesSinceMidnight);
-    const message = await generateNag({
-      escalation: decision.escalation ?? 0,
-      streak: await currentStreak(),
-      sessionName: session ?? 'your workout',
-      weekNumber: weekNumber(ln.dateStr, cfg.planStart),
-      minutesLeft,
-      model: cfg.model,
-      apiKey: cfg.openRouterKey,
-      personaName: cfg.personaName
+    // Micro routine nag (rest days only, same 15-min tick)
+    const microDecision = decideMicro({
+      isTrainingDay: training,
+      withinWake,
+      fraction,
+      overrideActive,
+      day: { microDone: day.microDone, microNagCount: day.microNagCount, microLastNagAt: day.microLastNagAt },
+      settings: sharedSettings,
+      now
     });
 
-    await sendText(client, cfg, message);
-    await repo.recordNag(day.id, decision.escalation ?? 0, message);
-    console.log(`[tick] nagged (L${decision.escalation}): ${message}`);
+    if (microDecision.action === 'nag') {
+      const isFirstNag = day.microNagCount === 0;
+      const msg = isFirstNag
+        ? microNudgeMorning(cfg.personaName)
+        : microNagMessage(microDecision.escalation ?? 0, cfg.personaName);
+      await sendText(client, cfg, msg);
+      await repo.recordMicroNag(day.id, microDecision.escalation ?? 0, msg);
+      console.log(`${tag} micro nag (L${microDecision.escalation})`);
+    } else if (decision.action !== 'nag') {
+      console.log(`${tag} silent — ${decision.reason}`);
+    }
   } catch (err) {
     console.error('[tick] error:', err);
   }
@@ -95,21 +119,6 @@ async function main() {
       const ln = localNow(cfg.tz);
       void repo.finalizePastDays(ln.dateStr, cfg.tz);
       console.log('[finalize] ran nightly finalisation');
-    },
-    { timezone: cfg.tz }
-  );
-
-  // Morning micro nudge: rest days only, fires at WAKE_START.
-  const wakeStartMins = parseHm(cfg.wakeStart);
-  const wakeStartH = Math.floor(wakeStartMins / 60);
-  const wakeStartM = wakeStartMins % 60;
-  cron.schedule(
-    `${wakeStartM} ${wakeStartH} * * *`,
-    () => {
-      const ln = localNow(cfg.tz);
-      if (isTrainingDay(ln.weekday, cfg.trainingDays)) return; // session covers it
-      console.log('[micro] sending morning nudge');
-      void sendText(client, cfg, microNudgeMorning(cfg.personaName));
     },
     { timezone: cfg.tz }
   );

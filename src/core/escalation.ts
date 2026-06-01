@@ -38,6 +38,42 @@ export interface DecideInput {
   now: Date;
 }
 
+export interface MicroDayState {
+  microDone: boolean;
+  microNagCount: number;
+  microLastNagAt: Date | null;
+}
+
+export interface MicroDecideInput {
+  isTrainingDay: boolean; // micro morning is skipped on training days
+  withinWake: boolean;
+  fraction: number;
+  overrideActive: boolean;
+  day: MicroDayState;
+  settings: EscalationSettings;
+  now: Date;
+}
+
+/** Same gap/cap/escalation logic as decide(), but for the daily micro routine. */
+export function decideMicro(input: MicroDecideInput): Decision {
+  const { isTrainingDay, withinWake, overrideActive, fraction, day, settings, now } = input;
+  if (!withinWake) return { action: 'silent', reason: 'outside waking hours' };
+  if (isTrainingDay) return { action: 'silent', reason: 'training day — session covers micro' };
+  if (day.microDone) return { action: 'silent', reason: 'micro routine already done today' };
+  if (overrideActive) return { action: 'silent', reason: 'override active' };
+  if (day.microNagCount >= settings.maxNagsPerDay) {
+    return { action: 'silent', reason: 'micro nag cap reached' };
+  }
+  const level = escalationLevel(fraction);
+  if (day.microLastNagAt) {
+    const gapMin = (now.getTime() - day.microLastNagAt.getTime()) / 60000;
+    if (gapMin < MIN_GAP_MIN[level]) {
+      return { action: 'silent', reason: 'within minimum gap since last micro nag' };
+    }
+  }
+  return { action: 'nag', escalation: level, reason: 'micro routine not yet done' };
+}
+
 /**
  * The single source of truth for "should I nag right now, and how hard".
  * Pure function — no DB, no Discord, fully unit-testable.

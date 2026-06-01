@@ -8,7 +8,7 @@ import { parseCommand, overrideWindow, type WindowCommand } from '../../src/core
 import { detectsConcern } from '../../src/core/concern';
 import { computeStreak } from '../../src/core/streak';
 import { parseWorkout, isWorkoutReport } from '../../src/core/workoutlog';
-import { congratsMessage, overrideAck, concernReply, helpMessage } from '../../src/nag/generate';
+import { congratsMessage, overrideAck, concernReply, helpMessage, microDoneAck } from '../../src/nag/generate';
 import { generateChatReply, type ChatMessage, type CoachLiveData } from '../../src/nag/coach';
 import * as repo from '../repo';
 
@@ -138,7 +138,21 @@ export async function handleIncoming(cfg: Config, message: Message): Promise<voi
     return;
   }
 
-  // 3) LOG (explicit)
+  // 3) /done — marks morning micro routine complete
+  //    Reject only when today is a training day with a pending workout;
+  //    overridden/rest/proven training days are fine to accept /done.
+  if (cmd && cmd.type === 'done') {
+    const day = await repo.ensureToday(ln.dateStr, training, session);
+    if (training && day.status === 'pending') {
+      await message.reply('Send a photo or fitness screenshot to prove your workout — /done is for the micro routine.');
+    } else {
+      await repo.markMicroDone(day.id);
+      await message.reply(microDoneAck());
+    }
+    return;
+  }
+
+  // 4) LOG (explicit)
   if (cmd && cmd.type === 'log') {
     const parsed = parseWorkout(cmd.text || raw);
     const day = await repo.ensureToday(ln.dateStr, training, session);
@@ -147,7 +161,7 @@ export async function handleIncoming(cfg: Config, message: Message): Promise<voi
     return;
   }
 
-  // 4) Override commands
+  // 5) Override commands (rest/sick/exam/snooze — status/log/done already handled above)
   if (cmd) {
     const wc = cmd as WindowCommand;
     const { startsAt, endsAt } = overrideWindow(wc, cfg.tz, now);

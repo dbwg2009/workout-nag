@@ -1,4 +1,4 @@
-import { and, eq, lt, desc } from 'drizzle-orm';
+import { and, eq, lt, desc, sql } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import { getDb } from '../src/db/client';
 import { days, overrides, nudges, proofs, settings, workouts, planLogs, type Day } from '../src/db/schema';
@@ -122,6 +122,26 @@ export async function finalizePastDays(todayStr: string, tz: string): Promise<vo
       .set({ status: covered ? 'overridden' : 'missed' })
       .where(eq(days.id, d.id));
   }
+}
+
+export async function markMicroDone(dayId: number): Promise<void> {
+  await db.update(days).set({ microDone: true }).where(eq(days.id, dayId));
+}
+
+export async function recordMicroNag(
+  dayId: number,
+  escalation: number,
+  message: string
+): Promise<void> {
+  await db.insert(nudges).values({ dayId, escalation, message, channel: 'discord-micro' });
+  await db
+    .update(days)
+    .set({
+      microNagCount: sql`${days.microNagCount} + 1`,
+      microEscalation: escalation,
+      microLastNagAt: new Date()
+    })
+    .where(eq(days.id, dayId));
 }
 
 export async function addWorkout(

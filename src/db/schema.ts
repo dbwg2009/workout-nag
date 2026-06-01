@@ -36,6 +36,10 @@ export const days = pgTable(
     nagCount: integer('nag_count').notNull().default(0),
     escalation: integer('escalation').notNull().default(0),
     lastNagAt: timestamp('last_nag_at', { withTimezone: true }),
+    microDone: boolean('micro_done').notNull().default(false),
+    microNagCount: integer('micro_nag_count').notNull().default(0),
+    microEscalation: integer('micro_escalation').notNull().default(0),
+    microLastNagAt: timestamp('micro_last_nag_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
   },
   (t) => ({ dateUnique: uniqueIndex('days_date_unique').on(t.date) })

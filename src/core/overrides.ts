@@ -17,6 +17,7 @@ export type ParsedCommand =
   | { type: 'snooze'; hours: number }
   | { type: 'status' }
   | { type: 'log'; text: string }
+  | { type: 'done' }
   | null;
 
 /** Parse a slash command from a user message (e.g. /rest, /sick 3, /log ...). */
@@ -27,6 +28,7 @@ export function parseCommand(raw: string): ParsedCommand {
   const first = lower.split(/\s+/)[0].slice(1); // strip leading /
 
   if (first === 'rest') return { type: 'rest' };
+  if (first === 'done') return { type: 'done' };
   if (first === 'status') return { type: 'status' };
   if (first === 'log') return { type: 'log', text: text.replace(/^\/log\s*/i, '').trim() };
   if (first === 'sick' || first === 'ill') {
@@ -44,7 +46,7 @@ export function parseCommand(raw: string): ParsedCommand {
   return null;
 }
 
-export type WindowCommand = Exclude<ParsedCommand, null | { type: 'status' } | { type: 'log'; text: string }>;
+export type WindowCommand = Exclude<ParsedCommand, null | { type: 'status' } | { type: 'log'; text: string } | { type: 'done' }>;
 
 /** Translate a command into a concrete [startsAt, endsAt] window in the given tz. */
 export function overrideWindow(
