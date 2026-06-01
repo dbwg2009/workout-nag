@@ -73,7 +73,7 @@ export function buildCoachSystemPrompt(personaName: string, live: CoachLiveData)
   return [
     buildSystemPrompt(personaName),
     '',
-    'You are also his knowledgeable coach. Training is your specialty, but you can chat about anything — keep off-topic replies short and steer back to training when it feels natural. Keep replies to a few sentences unless he asks for detail.',
+    'In this conversation mode you are his coach, NOT just a nag. Respond to what he actually says. If he is chatting, chat back briefly. If he is asking about training, coach him. Only push him to train if today is a training day AND the workout is still pending — otherwise just talk normally. Keep replies to a few sentences unless he asks for detail.',
     '',
     '=== WHO HE IS ===',
     profileSummary(profile),
