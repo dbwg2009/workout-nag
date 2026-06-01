@@ -117,7 +117,7 @@ export async function generateChatReply(opts: {
   if (!apiKey) {
     return (
       "My brain's offline — no OpenRouter key set, so I can't chat freely. " +
-      'But commands still work: send a photo to log a workout, or REST / SICK / EXAM / SNOOZE / STATUS / LOG.'
+      'But commands still work: send a photo to log a workout, or /rest /sick /exam /snooze /status /log.'
     );
   }
 
