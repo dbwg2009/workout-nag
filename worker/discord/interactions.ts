@@ -166,7 +166,7 @@ export async function handleInteraction(cfg: Config, interaction: ChatInputComma
       const exerciseInput = interaction.options.getString('exercise', true);
       const overrideSecs = interaction.options.getInteger('seconds') ?? undefined;
       const week = weekNumber(ln.dateStr, cfg.planStart);
-      const result = lookupTimer(exerciseInput, ln.weekday, week, overrideSecs);
+      const result = lookupTimer(exerciseInput, ln.weekday, week, overrideSecs, cfg.trainingDays);
       if (!result.found) {
         await interaction.reply(
           `I don't know "${exerciseInput}" — it's not in today's session or the micro routine. Tell me how many seconds and I'll run it: \`/timer ${exerciseInput} 30\``
