@@ -13,6 +13,7 @@ export interface CoachLiveData {
   isTrainingDay: boolean;
   todayStatus: string; // 'proven' | 'pending' | 'rest' | 'overridden' | 'missed'
   streak: number;
+  currentDateTime: string; // e.g. "Monday 2 Jun 2026, 19:32 BST — Week 1 of 8"
   recentDays: { date: string; status: string; sessionName: string | null }[];
   recentWorkouts: { date: string; rawText: string }[];
   planLogs: {
@@ -90,6 +91,9 @@ export function buildCoachSystemPrompt(personaName: string, live: CoachLiveData)
     '',
     '=== PRINCIPLES (follow these in any advice — only share if he asks) ===',
     PRINCIPLES.map((p) => `- ${p}`).join('\n'),
+    '',
+    '=== CURRENT DATE & TIME ===',
+    live.currentDateTime,
     '',
     '=== HIS PROGRESS ===',
     `Current streak: ${live.streak} day(s).`,

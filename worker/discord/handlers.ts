@@ -1,7 +1,7 @@
 import { Message } from 'discord.js';
 import { DateTime } from 'luxon';
 import type { Config } from '../config';
-import { localNow } from '../../src/core/time';
+import { localNow, formatDateTime } from '../../src/core/time';
 import { isTrainingDay, sessionFor, weekNumber } from '../../src/core/schedule';
 import { verifyProof } from '../../src/core/proof';
 import { parseCommand, overrideWindow, type WindowCommand } from '../../src/core/overrides';
@@ -10,6 +10,7 @@ import { computeStreak } from '../../src/core/streak';
 import { parseWorkout, isWorkoutReport } from '../../src/core/workoutlog';
 import { congratsMessage, overrideAck, concernReply, helpMessage, microDoneAck } from '../../src/nag/generate';
 import { generateChatReply, type ChatMessage, type CoachLiveData } from '../../src/nag/coach';
+import { pushPending } from './timerManager';
 import * as repo from '../repo';
 
 function rejectionMessage(reason: string): string {
@@ -32,7 +33,7 @@ async function streakNow(): Promise<number> {
   );
 }
 
-async function buildLive(cfg: Config, weekday: string, dateStr: string): Promise<CoachLiveData> {
+async function buildLive(cfg: Config, weekday: string, dateStr: string, now: Date = new Date()): Promise<CoachLiveData> {
   const week = weekNumber(dateStr, cfg.planStart);
   const training = isTrainingDay(weekday, cfg.trainingDays);
   const session = sessionFor(weekday, cfg.trainingDays);
@@ -47,6 +48,7 @@ async function buildLive(cfg: Config, weekday: string, dateStr: string): Promise
     week,
     isTrainingDay: training,
     todayStatus: day.status,
+    currentDateTime: formatDateTime(cfg.tz, now, week),
     streak: computeStreak(
       recentDays.map((d) => ({ dateStr: d.date, isTrainingDay: d.isTrainingDay, status: d.status }))
     ),
@@ -112,6 +114,24 @@ export async function handleIncoming(cfg: Config, message: Message): Promise<voi
   const ln = localNow(cfg.tz, now);
   const training = isTrainingDay(ln.weekday, cfg.trainingDays);
   const session = sessionFor(ln.weekday, cfg.trainingDays);
+
+  // 0) Push response — user replying yes/no after a surprise timer extension
+  const pending = pushPending.get(message.author.id);
+  if (pending) {
+    const lower = (message.content ?? '').toLowerCase().trim();
+    if (/^y(es|ep|eah)?$/.test(lower)) {
+      pushPending.delete(message.author.id);
+      await message.reply(`Good. ${pending.extraSeconds}s extra is yours now. That's how limits move.`);
+      return;
+    }
+    if (/^no?$/.test(lower)) {
+      pushPending.delete(message.author.id);
+      await message.reply(`You know where your limit is now. That's the target next time. Build up to it.`);
+      return;
+    }
+    // Unclear reply — fall through to normal handling
+    pushPending.delete(message.author.id);
+  }
 
   // 1) Image attachment => proof
   const image = message.attachments.find((a) => (a.contentType ?? '').startsWith('image/'));
@@ -230,7 +250,7 @@ export async function handleIncoming(cfg: Config, message: Message): Promise<voi
   try {
     const ch = message.channel as { sendTyping?: () => Promise<unknown> };
     if (typeof ch.sendTyping === 'function') { try { await ch.sendTyping(); } catch { /* ignore */ } }
-    const live = await buildLive(cfg, ln.weekday, ln.dateStr);
+    const live = await buildLive(cfg, ln.weekday, ln.dateStr, now);
     const history = await fetchHistory(message);
     const reply = await generateChatReply({
       personaName: cfg.personaName,
