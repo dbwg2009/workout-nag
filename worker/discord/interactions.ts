@@ -97,9 +97,14 @@ export async function handleInteraction(cfg: Config, interaction: ChatInputComma
       const day = await repo.ensureToday(ln.dateStr, training, session);
       if (training && day.status === 'pending') {
         await interaction.reply('Send a photo or fitness screenshot to prove your workout — /done is for the micro routine.');
-      } else {
+      } else if (!day.microDone) {
         await repo.markMicroDone(day.id);
-        await interaction.reply(microDoneAck());
+        await interaction.reply(microDoneAck('morning'));
+      } else if (!day.microEveningDone) {
+        await repo.markMicroEveningDone(day.id);
+        await interaction.reply(microDoneAck('evening'));
+      } else {
+        await interaction.reply('Both micro sessions already logged today. Good work.');
       }
       return;
     }

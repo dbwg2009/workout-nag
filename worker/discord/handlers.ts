@@ -152,16 +152,21 @@ export async function handleIncoming(cfg: Config, message: Message): Promise<voi
     return;
   }
 
-  // 3) /done — marks morning micro routine complete
+  // 3) /done — marks micro sessions sequentially (morning then evening).
   //    Reject only when today is a training day with a pending workout;
   //    overridden/rest/proven training days are fine to accept /done.
   if (cmd && cmd.type === 'done') {
     const day = await repo.ensureToday(ln.dateStr, training, session);
     if (training && day.status === 'pending') {
       await message.reply('Send a photo or fitness screenshot to prove your workout — /done is for the micro routine.');
-    } else {
+    } else if (!day.microDone) {
       await repo.markMicroDone(day.id);
-      await message.reply(microDoneAck());
+      await message.reply(microDoneAck('morning'));
+    } else if (!day.microEveningDone) {
+      await repo.markMicroEveningDone(day.id);
+      await message.reply(microDoneAck('evening'));
+    } else {
+      await message.reply('Both micro sessions already logged today. Good work.');
     }
     return;
   }

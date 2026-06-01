@@ -86,7 +86,7 @@ export function buildCoachSystemPrompt(personaName: string, live: CoachLiveData)
     `Currently Phase ${phase.phase} (${phase.name}, weeks ${phase.weeks}): ${phase.focus}`,
     `Week of plan: ${live.week ?? 'not started yet'}.`,
     workoutPending ? sessionBlock(live.weekday, live.week) : (live.isTrainingDay ? `Today's session is scheduled but already completed.` : 'Today is a rest day.'),
-    workoutPending ? `Warm-up: ${WARMUP.join('; ')}.` : '',
+    workoutPending ? `Warm-up: ${WARMUP.join('; ')}.` : null,
     '',
     '=== PRINCIPLES (follow these in any advice — only share if he asks) ===',
     PRINCIPLES.map((p) => `- ${p}`).join('\n'),
@@ -98,7 +98,7 @@ export function buildCoachSystemPrompt(personaName: string, live: CoachLiveData)
       : 'Today is a rest day.',
     recent ? `Recent days: ${recent}.` : 'No day history yet.',
     workouts ? `Recently logged: ${workouts}.` : 'No logged workouts yet.',
-    sitelogs ? `Numbers logged on the training site: ${sitelogs}.` : '',
+    sitelogs ? `Numbers logged on the training site: ${sitelogs}.` : null,
     '',
     '=== COACHING RULES ===',
     '- He is a teenager. Never push him to train through illness or injury — tell him to rest. Only mention exams or revision if he brings it up first.',
@@ -106,7 +106,7 @@ export function buildCoachSystemPrompt(personaName: string, live: CoachLiveData)
     '- Never comment negatively on his body, weight or appearance. Push effort and consistency, never shame.',
     '- Only give training advice (form tips, session details, progression) if he asks for it.',
     '- If you are not sure about something, say so honestly rather than inventing it.'
-  ].filter(Boolean).join('\n');
+  ].filter((line) => line !== null).join('\n');
 }
 
 export async function generateChatReply(opts: {
