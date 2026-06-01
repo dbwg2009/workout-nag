@@ -152,7 +152,7 @@ export async function handleIncoming(cfg: Config, message: Message): Promise<voi
     return;
   }
 
-  // 3) /done — marks morning micro routine complete
+  // 3) /done — marks micro sessions sequentially (morning then evening).
   //    Reject only when today is a training day with a pending workout;
   //    overridden/rest/proven training days are fine to accept /done.
   if (cmd && cmd.type === 'done') {
