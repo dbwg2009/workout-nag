@@ -240,22 +240,32 @@ async function finishSession(session: WorkoutSession): Promise<void> {
     }
   }
 
+  const now = new Date();
+  const ln = localNow(session.cfg.tz, now);
+  const training = isTrainingDay(ln.weekday, session.cfg.trainingDays);
+  const sessionName = sessionFor(ln.weekday, session.cfg.trainingDays);
+  const day = await repo.ensureToday(ln.dateStr, training, sessionName);
+
   if (session.isMicro) {
     lines.push('');
-    lines.push('Good. Mark it done with `/done`.');
-    const now = new Date();
-    const ln = localNow(session.cfg.tz, now);
-    const training = isTrainingDay(ln.weekday, session.cfg.trainingDays);
-    const sessionName = sessionFor(ln.weekday, session.cfg.trainingDays);
-    const day = await repo.ensureToday(ln.dateStr, training, sessionName);
+    lines.push('Good. Marked done.');
     if (session.microSession === 'morning' && !day.microDone) {
       await repo.markMicroDone(day.id);
     } else if (session.microSession === 'evening' && !day.microEveningDone) {
       await repo.markMicroEveningDone(day.id);
     }
   } else {
+    // Build a log entry from the session and write it to the DB
+    const logParts = session.exercises.map((ex) => {
+      const reps = ex.repsLogged.filter((r) => r !== null) as number[];
+      if (ex.isTimed) return `${ex.name}: ${ex.totalSets}×${ex.timedSeconds}s`;
+      if (reps.length > 0) return `${ex.name}: ${reps.join(', ')} reps`;
+      return `${ex.name}: ${ex.totalSets} sets`;
+    });
+    const rawText = `[/workout] ${session.sessionLabel} — ${logParts.join('; ')}`;
+    await repo.addWorkout(day.id, ln.dateStr, rawText, []);
     lines.push('');
-    lines.push('Send a photo for proof, or `/log` to add notes.');
+    lines.push('Logged. Send a photo for proof, or `/log` to add notes.');
   }
 
   await ch.send(lines.join('\n')).catch(() => {});
