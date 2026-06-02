@@ -5,6 +5,7 @@ import { localNow } from '../../src/core/time';
 import { isTrainingDay, sessionFor, weekNumber } from '../../src/core/schedule';
 import type { Config } from '../config';
 import * as repo from '../repo';
+import { addPlanLog } from '../../src/db/plan-repo';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -255,17 +256,44 @@ async function finishSession(session: WorkoutSession): Promise<void> {
       await repo.markMicroEveningDone(day.id);
     }
   } else {
-    // Build a log entry from the session and write it to the DB
-    const logParts = session.exercises.map((ex) => {
-      const reps = ex.repsLogged.filter((r) => r !== null) as number[];
-      if (ex.isTimed) return `${ex.name}: ${ex.totalSets}×${ex.timedSeconds}s`;
-      if (reps.length > 0) return `${ex.name}: ${reps.join(', ')} reps`;
-      return `${ex.name}: ${ex.totalSets} sets`;
+    // Map exercise results into structured plan_logs fields
+    const pressupNames = /press.?up|push.?up/i;
+    const pullupNames = /pull.?up|chin.?up|negative/i;
+    const squatNames = /squat|lunge|glute bridge|calf/i;
+    const plankNames = /plank/i;
+
+    const collect = (pattern: RegExp): string | undefined => {
+      const parts = session.exercises
+        .filter((ex) => pattern.test(ex.name))
+        .map((ex) => {
+          const reps = ex.repsLogged.filter((r) => r !== null) as number[];
+          if (ex.isTimed) return `${ex.name} ${ex.totalSets}×${ex.timedSeconds}s`;
+          if (reps.length > 0) return `${ex.name} ${reps.join('/')}`;
+          return `${ex.name} ${ex.totalSets} sets`;
+        });
+      return parts.length ? parts.join('; ') : undefined;
+    };
+
+    const noteExercises = session.exercises
+      .filter((ex) => !pressupNames.test(ex.name) && !pullupNames.test(ex.name) && !squatNames.test(ex.name) && !plankNames.test(ex.name))
+      .map((ex) => {
+        const reps = ex.repsLogged.filter((r) => r !== null) as number[];
+        if (ex.isTimed) return `${ex.name} ${ex.totalSets}×${ex.timedSeconds}s`;
+        if (reps.length > 0) return `${ex.name} ${reps.join('/')}`;
+        return `${ex.name} ${ex.totalSets} sets`;
+      });
+
+    await addPlanLog({
+      date: ln.dateStr,
+      session: session.sessionLabel,
+      pressups: collect(pressupNames),
+      pullups: collect(pullupNames),
+      squats: collect(squatNames),
+      plank: collect(plankNames),
+      notes: noteExercises.length ? noteExercises.join('; ') : undefined
     });
-    const rawText = `[/workout] ${session.sessionLabel} — ${logParts.join('; ')}`;
-    await repo.addWorkout(day.id, ln.dateStr, rawText, []);
     lines.push('');
-    lines.push('Logged. Send a photo for proof, or `/log` to add notes.');
+    lines.push('Logged to training plan. Send a photo for proof, or `/log` to add notes.');
   }
 
   await ch.send(lines.join('\n')).catch(() => {});
