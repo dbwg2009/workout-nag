@@ -43,3 +43,6 @@ h2 { font-size: 1.1rem; margin: 1.6rem 0 0.6rem; letter-spacing: 0.02em; }
 .nudge .when { color: var(--text3); font-size: 0.7rem; }
 .warn { background: var(--surface2); border: 1px solid var(--accent); padding: 1rem 1.1rem; color: var(--text2); font-size: 0.88rem; }
 .date { color: var(--text3); font-variant-numeric: tabular-nums; }
+
+.action-item { display: block; width: 100%; background: none; border: none; color: var(--text2); padding: 0.45rem 0.75rem; text-align: left; cursor: pointer; font-size: 0.75rem; font-family: inherit; }
+.action-item:hover { background: var(--surface); color: var(--text); }

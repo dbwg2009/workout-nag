@@ -934,6 +934,12 @@ function saveLog() {
 }
 function clearLog() { if (confirm('Clear all log data?')) { logs = []; clearLogsServer(); renderCharts(); renderHistory(); } }
 
+async function deleteLogEntry(id) {
+  await fetch(`/api/plan/logs/${id}`, { method: 'DELETE' }).catch(() => {});
+  logs = logs.filter(l => l.id !== id);
+  renderCharts(); renderHistory();
+}
+
 function renderCharts() {
   const area = document.getElementById('charts-area');
   if (!area) return;
@@ -966,7 +972,7 @@ function renderHistory() {
   if (!area) return;
   if (logs.length === 0) { area.innerHTML = `<p class="small">No entries yet.</p>`; return; }
   const sorted = [...logs].sort((a,b) => b.ts - a.ts);
-  area.innerHTML = sorted.slice(0, 25).map(l => `<div class="log-entry"><div><div style="font-size:0.84rem;color:var(--text);">${l.session||''}</div><div class="log-entry-date">${l.date||''}${l.notes ? ' · ' + l.notes : ''}</div></div><div style="text-align:right;display:flex;gap:0.7rem;align-items:center;">${l.pressups?`<div><div class="log-entry-val">${l.pressups}</div><div style="font-size:0.6rem;color:var(--text3);">press</div></div>`:''}${l.pullups?`<div><div class="log-entry-val" style="color:var(--blue);">${l.pullups}</div><div style="font-size:0.6rem;color:var(--text3);">pull</div></div>`:''}${l.squats?`<div><div class="log-entry-val" style="color:#c9a227;">${l.squats}</div><div style="font-size:0.6rem;color:var(--text3);">squat</div></div>`:''}${l.plank?`<div><div class="log-entry-val" style="color:var(--green);">${l.plank}s</div><div style="font-size:0.6rem;color:var(--text3);">plank</div></div>`:''}${l.weight?`<div><div class="log-entry-val" style="color:var(--text2);">${l.weight}</div><div style="font-size:0.6rem;color:var(--text3);">kg</div></div>`:''}</div></div>`).join('');
+  area.innerHTML = sorted.slice(0, 25).map(l => `<div class="log-entry"><div><div style="font-size:0.84rem;color:var(--text);">${l.session||''}</div><div class="log-entry-date">${l.date||''}${l.notes ? ' · ' + l.notes : ''}</div></div><div style="text-align:right;display:flex;gap:0.7rem;align-items:center;">${l.pressups?`<div><div class="log-entry-val">${l.pressups}</div><div style="font-size:0.6rem;color:var(--text3);">press</div></div>`:''}${l.pullups?`<div><div class="log-entry-val" style="color:var(--blue);">${l.pullups}</div><div style="font-size:0.6rem;color:var(--text3);">pull</div></div>`:''}${l.squats?`<div><div class="log-entry-val" style="color:#c9a227;">${l.squats}</div><div style="font-size:0.6rem;color:var(--text3);">squat</div></div>`:''}${l.plank?`<div><div class="log-entry-val" style="color:var(--green);">${l.plank}s</div><div style="font-size:0.6rem;color:var(--text3);">plank</div></div>`:''}${l.weight?`<div><div class="log-entry-val" style="color:var(--text2);">${l.weight}</div><div style="font-size:0.6rem;color:var(--text3);">kg</div></div>`:''}${l.id?`<button onclick="deleteLogEntry(${l.id})" style="background:none;border:1px solid var(--border);color:var(--text3);font-size:0.65rem;padding:0.15rem 0.45rem;cursor:pointer;margin-left:0.3rem;" title="Delete entry">✕</button>`:''}</div></div>`).join('');
 }
 
 // Init

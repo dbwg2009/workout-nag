@@ -2,6 +2,7 @@ import { desc } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import { days, nudges, overrides } from '@/db/schema';
 import { computeStreak } from '@/core/streak';
+import DayActions from './components/DayActions';
 
 export const dynamic = 'force-dynamic';
 
@@ -94,7 +95,17 @@ export default async function Page() {
           <div className="row" key={d.id}>
             <span className="date">{d.date}</span>
             <span>{d.isTrainingDay ? d.sessionName : 'Rest'}</span>
-            <span className={`pill ${d.status}`}>{d.status}</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span className={`pill ${d.status}`}>{d.status}</span>
+              <DayActions
+                dayId={d.id}
+                date={d.date}
+                isTrainingDay={d.isTrainingDay}
+                status={d.status}
+                microDone={d.microDone}
+                microEveningDone={d.microEveningDone}
+              />
+            </span>
           </div>
         ))}
       </div>

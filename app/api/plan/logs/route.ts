@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const rows = await getPlanLogs();
   const logs = rows.map((r) => ({
+    id: r.id,
     date: r.date,
     session: r.session,
     pressups: r.pressups,
