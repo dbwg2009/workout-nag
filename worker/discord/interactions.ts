@@ -155,10 +155,29 @@ export async function handleInteraction(cfg: Config, interaction: ChatInputComma
       return;
     }
 
-    // /timer — countdown timer for a set or rest period
+    // /timer — countdown timer for an exercise hold or rest period
+    // With no arguments, defaults to a 60s rest timer.
     if (cmd === 'timer') {
-      const exerciseInput = interaction.options.getString('exercise', true);
+      const exerciseInput = interaction.options.getString('exercise') ?? null;
       const overrideSecs = interaction.options.getInteger('seconds') ?? undefined;
+
+      if (!exerciseInput) {
+        // Pure rest timer — no exercise lookup needed
+        const seconds = overrideSecs ?? 60;
+        await interaction.reply(`Rest. **${seconds}s.**`);
+        await startTimer({
+          client: interaction.client,
+          channelId: interaction.channelId,
+          userId: interaction.user.id,
+          exerciseName: 'Rest',
+          seconds,
+          pushEnabled: false,
+          maxPushSeconds: 0,
+          isRest: true
+        });
+        return;
+      }
+
       const week = weekNumber(ln.dateStr, cfg.planStart);
       const result = lookupTimer(exerciseInput, ln.weekday, week, overrideSecs, cfg.trainingDays);
       if (!result.found) {
@@ -167,6 +186,7 @@ export async function handleInteraction(cfg: Config, interaction: ChatInputComma
         );
         return;
       }
+      const isRest = result.name.toLowerCase() === 'rest';
       const sourceNote =
         result.source === 'upcoming'
           ? ` (from your next ${result.upcomingDay} session)`
@@ -182,7 +202,7 @@ export async function handleInteraction(cfg: Config, interaction: ChatInputComma
         seconds: result.seconds,
         pushEnabled: cfg.timerPushEnabled,
         maxPushSeconds: cfg.timerMaxPushSeconds,
-        isRest: result.name === 'Rest'
+        isRest
       });
       return;
     }

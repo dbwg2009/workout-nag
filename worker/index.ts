@@ -48,7 +48,7 @@ const SLASH_COMMANDS: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [
     name: 'timer',
     description: 'Start a countdown timer for an exercise hold or rest period',
     options: [
-      { name: 'exercise', description: 'Exercise name (e.g. plank, dead hang, hollow body, rest) or seconds', type: ApplicationCommandOptionType.String, required: true },
+      { name: 'exercise', description: 'Exercise name (e.g. plank, dead hang, hollow body) — omit for a rest timer', type: ApplicationCommandOptionType.String, required: false },
       { name: 'seconds', description: 'Override duration in seconds', type: ApplicationCommandOptionType.Integer, required: false, min_value: 5, max_value: 600 }
     ]
   },
