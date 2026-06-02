@@ -11,6 +11,7 @@ import { parseWorkout, isWorkoutReport } from '../../src/core/workoutlog';
 import { congratsMessage, overrideAck, concernReply, helpMessage, microDoneAck } from '../../src/nag/generate';
 import { generateChatReply, type ChatMessage, type CoachLiveData } from '../../src/nag/coach';
 import { pushPending } from './timerManager';
+import { handleWorkoutMessage } from './workoutMode';
 import * as repo from '../repo';
 
 function rejectionMessage(reason: string): string {
@@ -115,7 +116,10 @@ export async function handleIncoming(cfg: Config, message: Message): Promise<voi
   const training = isTrainingDay(ln.weekday, cfg.trainingDays);
   const session = sessionFor(ln.weekday, cfg.trainingDays);
 
-  // 0) Push response — user replying yes/no after a surprise timer extension
+  // 0a) Workout mode rep input — intercept before anything else
+  if (await handleWorkoutMessage(message.author.id, message.content ?? '')) return;
+
+  // 0b) Push response — user replying yes/no after a surprise timer extension
   const pending = pushPending.get(message.author.id);
   if (pending) {
     const lower = (message.content ?? '').toLowerCase().trim();

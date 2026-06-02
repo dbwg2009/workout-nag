@@ -11,6 +11,7 @@ import { overrideAck, concernReply, helpMessage, microDoneAck } from '../../src/
 import { generateChatReply, type CoachLiveData } from '../../src/nag/coach';
 import { lookupTimer } from '../../src/core/timer';
 import { startTimer } from './timerManager';
+import { startWorkout, cancelWorkout } from './workoutMode';
 import * as repo from '../repo';
 
 async function streakNow(): Promise<number> {
@@ -152,6 +153,18 @@ export async function handleInteraction(cfg: Config, interaction: ChatInputComma
       const { startsAt, endsAt } = overrideWindow(wc, cfg.tz, now);
       await repo.addOverride('snooze', startsAt, endsAt);
       await interaction.reply(overrideAck('snooze', `${clamped} hour(s)`));
+      return;
+    }
+
+    if (cmd === 'workout') {
+      await interaction.reply('Loading today\'s session…');
+      await startWorkout(interaction.client, cfg, interaction.user.id, interaction.channelId);
+      return;
+    }
+
+    if (cmd === 'cancel') {
+      await interaction.reply('Stopping session.');
+      await cancelWorkout(interaction.user.id, interaction.client, interaction.channelId);
       return;
     }
 

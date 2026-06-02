@@ -5,6 +5,8 @@ import {
   Partials,
   ApplicationCommandOptionType,
   ChatInputCommandInteraction,
+  type MessageReaction,
+  type User,
   type RESTPostAPIChatInputApplicationCommandsJSONBody
 } from 'discord.js';
 import cron from 'node-cron';
@@ -17,6 +19,7 @@ import { generateNag, microNagMessage, microNudgeMorning, microNudgeEvening } fr
 import { sendText } from './discord/send';
 import { handleIncoming } from './discord/handlers';
 import { handleInteraction } from './discord/interactions';
+import { handleWorkoutReaction } from './discord/workoutMode';
 import * as repo from './repo';
 
 const SLASH_COMMANDS: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [
@@ -44,6 +47,8 @@ const SLASH_COMMANDS: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [
     options: [{ name: 'text', description: 'e.g. "4×10 press-ups, felt strong"', type: ApplicationCommandOptionType.String, required: true }]
   },
   { name: 'done', description: 'Mark the morning micro routine as done (rest days)' },
+  { name: 'workout', description: 'Start guided workout mode — walks you through today\'s session' },
+  { name: 'cancel', description: 'Cancel an active workout session' },
   {
     name: 'timer',
     description: 'Start a countdown timer for an exercise hold or rest period',
@@ -144,9 +149,11 @@ async function main() {
       GatewayIntentBits.Guilds,
       GatewayIntentBits.GuildMessages,
       GatewayIntentBits.MessageContent,
-      GatewayIntentBits.DirectMessages
+      GatewayIntentBits.DirectMessages,
+      GatewayIntentBits.GuildMessageReactions,
+      GatewayIntentBits.DirectMessageReactions
     ],
-    partials: [Partials.Channel, Partials.Message]
+    partials: [Partials.Channel, Partials.Message, Partials.Reaction]
   });
 
   client.once(Events.ClientReady, (c) => {
@@ -166,6 +173,13 @@ async function main() {
   client.on(Events.InteractionCreate, (interaction) => {
     if (!interaction.isChatInputCommand()) return;
     void handleInteraction(cfg, interaction as ChatInputCommandInteraction);
+  });
+
+  client.on(Events.MessageReactionAdd, (reaction, user) => {
+    if ((user as User).bot) return;
+    if ((user as User).id !== cfg.userId) return;
+    const r = reaction as MessageReaction;
+    void handleWorkoutReaction((user as User).id, r.message.id, r.emoji.name ?? '');
   });
 
   // The nag loop: every 15 minutes, in the user's timezone.
